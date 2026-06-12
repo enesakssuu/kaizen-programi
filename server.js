@@ -2,6 +2,36 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const multer = require('multer');
+
+// Configure storage for audio uploads
+const audioStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, 'public', 'sounds');
+        try {
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+        } catch (e) {
+            console.error("Could not create sounds directory:", e.message);
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname) || '.mp3';
+        cb(null, `${file.fieldname}${ext}`);
+    }
+});
+
+const uploadAudio = multer({
+    storage: audioStorage,
+    fileFilter: function (req, file, cb) {
+        if (!file.mimetype.startsWith('audio/') && !file.originalname.endsWith('.mp3') && !file.originalname.endsWith('.wav')) {
+            return cb(new Error('Yalnızca ses dosyaları (.mp3, .wav) yüklenebilir!'), false);
+        }
+        cb(null, true);
+    }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,7 +81,13 @@ function getDefaultData() {
                 "Projenin sürdürülebilirlik ve yaygınlaştırılabilirlik potansiyeli nedir?"
             ],
             adminPassword: "kaizen2026",
-            countdownSeconds: 10
+            countdownSeconds: 10,
+            sounds: {
+                countdownEnabled: true,
+                countdownUrl: "",
+                revealEnabled: true,
+                revealUrl: ""
+            }
         }
     };
 }
@@ -80,7 +116,14 @@ function ensureDefaults(data) {
                 targetTimestamp: typeof timer.targetTimestamp === 'number' ? timer.targetTimestamp : (defaults.presentation.timer.targetTimestamp || Date.now() + 600000)
             }
         },
-        settings: { ...defaults.settings, ...(data.settings || {}) }
+        settings: {
+            ...defaults.settings,
+            ...(data.settings || {}),
+            sounds: {
+                ...defaults.settings.sounds,
+                ...((data.settings && data.settings.sounds) || {})
+            }
+        }
     };
 }
 
@@ -344,8 +387,50 @@ app.put('/api/settings', async (req, res) => {
         data.settings.adminPassword = adminPassword.trim();
     }
 
+    if (sounds && typeof sounds === 'object') {
+        data.settings.sounds = {
+            countdownEnabled: typeof sounds.countdownEnabled === 'boolean' ? sounds.countdownEnabled : true,
+            countdownUrl: typeof sounds.countdownUrl === 'string' ? sounds.countdownUrl.trim() : (data.settings.sounds?.countdownUrl || ""),
+            revealEnabled: typeof sounds.revealEnabled === 'boolean' ? sounds.revealEnabled : true,
+            revealUrl: typeof sounds.revealUrl === 'string' ? sounds.revealUrl.trim() : (data.settings.sounds?.revealUrl || "")
+        };
+    }
+
     await writeData(data);
     res.json({ success: true, settings: data.settings });
+});
+
+// ==================== SOUNDS UPLOAD ====================
+app.post('/api/settings/sounds/upload', uploadAudio.fields([
+    { name: 'countdown', maxCount: 1 },
+    { name: 'reveal', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const data = await readData();
+        if (!data.settings.sounds) {
+            data.settings.sounds = {
+                countdownEnabled: true,
+                countdownUrl: "",
+                revealEnabled: true,
+                revealUrl: ""
+            };
+        }
+
+        if (req.files && req.files['countdown']) {
+            const file = req.files['countdown'][0];
+            data.settings.sounds.countdownUrl = `/sounds/${file.filename}?t=${Date.now()}`;
+        }
+        if (req.files && req.files['reveal']) {
+            const file = req.files['reveal'][0];
+            data.settings.sounds.revealUrl = `/sounds/${file.filename}?t=${Date.now()}`;
+        }
+
+        await writeData(data);
+        res.json({ success: true, sounds: data.settings.sounds });
+    } catch (e) {
+        console.error("Sound upload error:", e);
+        res.status(500).json({ success: false, message: e.message });
+    }
 });
 
 // ==================== RESET DATA ====================

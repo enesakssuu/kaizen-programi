@@ -15,6 +15,12 @@
     let timerState = null;
     let localTimerInterval = null;
     let serverTimeOffset = 0;
+    let soundSettings = {
+        countdownEnabled: true,
+        countdownUrl: "",
+        revealEnabled: true,
+        revealUrl: ""
+    };
 
     // ==================== DOM ELEMENTS ====================
     const $particles = document.getElementById('particles');
@@ -108,6 +114,9 @@
     function handleStatusUpdate(data) {
         rankings = data.rankings || [];
         countdownSeconds = data.settings?.countdownSeconds || 10;
+        if (data.settings && data.settings.sounds) {
+            soundSettings = data.settings.sounds;
+        }
         presentationMode = data.presentation?.mode || 'timer';
         
         const revealed = data.presentation?.revealedRanks || [];
@@ -244,11 +253,12 @@
 
         let remaining = countdownSeconds;
         updateCountdownDisplay(remaining, countdownSeconds);
-
+        playTick();
+ 
         // Force reflow for transition reset
         void $ringProgress.offsetWidth;
         $ringProgress.style.transition = 'stroke-dashoffset 1s linear';
-
+ 
         countdownInterval = setInterval(() => {
             remaining--;
             if (remaining <= 0) {
@@ -258,6 +268,7 @@
                 showReveal(rank, project);
             } else {
                 updateCountdownDisplay(remaining, countdownSeconds);
+                playTick();
             }
         }, 1000);
     }
@@ -275,7 +286,8 @@
     // ==================== REVEAL ====================
     function showReveal(rank, project) {
         showOverlay($revealOverlay);
-
+        playReveal();
+ 
         // Set rank badge class
         let rankClass = 'rank-default';
         if (rank === 1) rankClass = 'rank-gold';
@@ -413,6 +425,83 @@
         }
     }
 
+    // ==================== SOUNDS PLAYBACK ====================
+    function playTick() {
+        if (soundSettings && soundSettings.countdownEnabled === false) return;
+        playSound(soundSettings?.countdownUrl, 'tick');
+    }
+ 
+    function playReveal() {
+        if (soundSettings && soundSettings.revealEnabled === false) return;
+        playSound(soundSettings?.revealUrl, 'reveal');
+    }
+ 
+    function playSound(url, type) {
+        if (!url) {
+            if (type === 'tick') playDefaultTickSound();
+            else if (type === 'reveal') playDefaultRevealSound();
+            return;
+        }
+        try {
+            const audio = new Audio(url);
+            audio.volume = type === 'tick' ? 0.35 : 0.8;
+            audio.play().catch(e => {
+                console.warn("Could not play custom sound, playing fallback:", e);
+                if (type === 'tick') playDefaultTickSound();
+                else if (type === 'reveal') playDefaultRevealSound();
+            });
+        } catch (e) {
+            if (type === 'tick') playDefaultTickSound();
+            else if (type === 'reveal') playDefaultRevealSound();
+        }
+    }
+ 
+    function playDefaultTickSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+            
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.08);
+        } catch (e) {
+            console.error("Audio error:", e);
+        }
+    }
+ 
+    function playDefaultRevealSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = ctx.currentTime;
+            
+            // C major arpeggio
+            const notes = [261.63, 329.63, 392.00, 523.25];
+            notes.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                gain.gain.setValueAtTime(0.12, now + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.8);
+                
+                osc.start(now + i * 0.12);
+                osc.stop(now + i * 0.12 + 0.8);
+            });
+        } catch (e) {
+            console.error("Audio error:", e);
+        }
+    }
+ 
     // ==================== UTILITY ====================
     function escapeHtml(str) {
         const div = document.createElement('div');

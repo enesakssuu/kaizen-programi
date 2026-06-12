@@ -129,6 +129,11 @@
         $savePasswordBtn.addEventListener('click', savePassword);
         $saveQuestionsBtn.addEventListener('click', saveQuestions);
         $addQuestionBtn.addEventListener('click', addQuestionRow);
+        
+        const $soundForm = document.getElementById('sound-settings-form');
+        if ($soundForm) {
+            $soundForm.addEventListener('submit', saveSoundSettings);
+        }
 
         // Resets
         $resetProjectsBtn.addEventListener('click', () => confirmReset('projects', 'Tüm projeler ve ilişkili puanlar silinecek. Emin misiniz?'));
@@ -721,6 +726,14 @@
 
             $countdownInput.value = settings.countdownSeconds || 10;
 
+            // Populate sound settings
+            if (settings.sounds) {
+                document.getElementById('sound-countdown-enabled').checked = settings.sounds.countdownEnabled !== false;
+                document.getElementById('sound-countdown-url').value = settings.sounds.countdownUrl || '';
+                document.getElementById('sound-reveal-enabled').checked = settings.sounds.revealEnabled !== false;
+                document.getElementById('sound-reveal-url').value = settings.sounds.revealUrl || '';
+            }
+
             const qRes = await fetch('/api/questions');
             const questions = await qRes.json();
             renderQuestions(questions);
@@ -838,6 +851,75 @@
             }
         } catch (err) {
             showToast('Kaydetme hatası', 'error');
+        }
+    }
+
+    async function saveSoundSettings(e) {
+        e.preventDefault();
+ 
+        const countdownEnabled = document.getElementById('sound-countdown-enabled').checked;
+        const countdownUrl = document.getElementById('sound-countdown-url').value.trim();
+        const revealEnabled = document.getElementById('sound-reveal-enabled').checked;
+        const revealUrl = document.getElementById('sound-reveal-url').value.trim();
+ 
+        const countdownFile = document.getElementById('sound-countdown-file').files[0];
+        const revealFile = document.getElementById('sound-reveal-file').files[0];
+ 
+        // If files are selected, upload them first
+        if (countdownFile || revealFile) {
+            const formData = new FormData();
+            if (countdownFile) formData.append('countdown', countdownFile);
+            if (revealFile) formData.append('reveal', revealFile);
+ 
+            try {
+                const uploadRes = await fetch('/api/settings/sounds/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (uploadData.success) {
+                    if (uploadData.sounds.countdownUrl) {
+                        document.getElementById('sound-countdown-url').value = uploadData.sounds.countdownUrl;
+                    }
+                    if (uploadData.sounds.revealUrl) {
+                        document.getElementById('sound-reveal-url').value = uploadData.sounds.revealUrl;
+                    }
+                    document.getElementById('sound-countdown-file').value = '';
+                    document.getElementById('sound-reveal-file').value = '';
+                    showToast('Ses dosyaları başarıyla yüklendi.', 'success');
+                } else {
+                    showToast(uploadData.message || 'Dosya yükleme hatası', 'error');
+                    return;
+                }
+            } catch (err) {
+                showToast('Dosya yüklenirken bağlantı hatası oluştu.', 'error');
+                return;
+            }
+        }
+ 
+        // Save text settings
+        const freshCountdownUrl = document.getElementById('sound-countdown-url').value.trim();
+        const freshRevealUrl = document.getElementById('sound-reveal-url').value.trim();
+ 
+        try {
+            const res = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sounds: {
+                        countdownEnabled,
+                        countdownUrl: freshCountdownUrl,
+                        revealEnabled,
+                        revealUrl: freshRevealUrl
+                    }
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Ses ayarları güncellendi', 'success');
+            }
+        } catch (err) {
+            showToast('Ayarlar kaydedilirken hata oluştu.', 'error');
         }
     }
 
