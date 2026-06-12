@@ -38,6 +38,7 @@
     const $rankingsTitle = document.getElementById('rankings-title');
     const $rankingsSection = document.getElementById('rankings-section');
     const $confettiContainer = document.getElementById('confetti-container');
+    const $viewerStage = document.getElementById('viewer-stage');
 
     const CIRCUMFERENCE = 2 * Math.PI * 120; // ~753.98
 
@@ -342,15 +343,21 @@
         if (isAnimating || revealedProjects.length > 0) {
             $waitingState.classList.add('hidden');
             $timerState.classList.add('hidden');
+            $rankingsSection.classList.remove('hidden');
+            $viewerStage.classList.remove('timer-only');
             return;
         }
 
         if (presentationMode === 'timer') {
             $timerState.classList.remove('hidden');
             $waitingState.classList.add('hidden');
+            $rankingsSection.classList.add('hidden');
+            $viewerStage.classList.add('timer-only');
         } else {
             $waitingState.classList.remove('hidden');
             $timerState.classList.add('hidden');
+            $rankingsSection.classList.add('hidden');
+            $viewerStage.classList.add('timer-only');
         }
     }
 

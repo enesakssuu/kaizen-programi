@@ -638,3 +638,78 @@
         display: none;
     }
 }
+
+/* ==================== TIMER DECORATIONS ==================== */
+.timer-state {
+    position: relative;
+    z-index: 1;
+}
+
+.timer-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 650px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(0, 113, 227, 0.12) 0%, rgba(0, 240, 255, 0.04) 50%, transparent 100%);
+    filter: blur(70px);
+    z-index: -1;
+    animation: glow-pulse 8s infinite alternate ease-in-out;
+    pointer-events: none;
+}
+
+.timer-decor-1 {
+    position: absolute;
+    top: -40px;
+    left: -80px;
+    width: 140px;
+    height: 140px;
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    border: 1.5px solid rgba(0, 113, 227, 0.06);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(4px);
+    animation: float-slow 22s infinite linear;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.timer-decor-2 {
+    position: absolute;
+    bottom: -60px;
+    right: -90px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0, 113, 227, 0.04);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(6px);
+    animation: float-slow-reverse 26s infinite linear;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes glow-pulse {
+    0% { transform: translate(-50%, -50%) scale(1) translate(-2%, -3%); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.15) translate(3%, 4%); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.9) translate(-1%, 2%); opacity: 0.7; }
+}
+
+@keyframes float-slow {
+    0% { transform: rotate(0deg) translate(0, 0) scale(1); }
+    50% { transform: rotate(180deg) translate(10px, -15px) scale(1.05); }
+    100% { transform: rotate(360deg) translate(0, 0) scale(1); }
+}
+
+@keyframes float-slow-reverse {
+    0% { transform: rotate(360deg) translate(0, 0) scale(1); }
+    50% { transform: rotate(180deg) translate(-15px, 10px) scale(0.95); }
+    100% { transform: rotate(0deg) translate(0, 0) scale(1); }
+}
+
+/* Flex layout centering for timer/waiting modes */
+.viewer-stage.timer-only {
+    flex: 1;
+    justify-content: center;
+    padding-bottom: 6vh; /* visual compensation for header */
+}
