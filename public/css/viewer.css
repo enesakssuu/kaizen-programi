@@ -52,39 +52,44 @@
     position: relative;
     z-index: 5;
     text-align: center;
-    padding: 1.5rem 2rem 0.5rem;
+    padding: 1rem 1rem 0.5rem;
 }
 
 .header-logos {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;
+    gap: 1rem;
     margin: 0 auto 0.75rem;
-    max-width: 600px;
+    max-width: calc(100vw - 2rem);
     width: fit-content;
-    background: rgba(15, 23, 42, 0.96); /* Dark slate glassmorphic pill */
-    padding: 0.6rem 1.8rem;
+    background: rgba(15, 23, 42, 0.96);
+    padding: 0.5rem 1.2rem;
     border-radius: 50px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .header-logo-left {
-    height: 34px;
+    height: 28px;
     width: auto;
     object-fit: contain;
-    filter: brightness(0) invert(1); /* Invert dark text to white */
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
 }
 
 .header-logo-right {
-    height: 56px;
+    height: 46px;
+    max-width: 120px;
     width: auto;
     object-fit: contain;
     mix-blend-mode: screen;
     filter: drop-shadow(0 0 8px rgba(255,255,255,0.15));
+    flex-shrink: 0;
 }
 
 .header-divider {
@@ -132,6 +137,24 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.waiting-state::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 750px;
+    height: 400px;
+    background: radial-gradient(circle at 30% 30%, rgba(10, 51, 139, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(252, 80, 0, 0.15) 0%, transparent 60%);
+    filter: blur(80px);
+    z-index: -1;
+    animation: glow-pulse 9s infinite alternate ease-in-out;
+    pointer-events: none;
 }
 
 .waiting-logo-card {
@@ -612,6 +635,13 @@
     .countdown-number { font-size: 4.5rem; }
     .reveal-project-name { font-size: 1.6rem; }
     .ranking-score-bar { display: none; }
+    .header-logos {
+        gap: 0.6rem;
+        padding: 0.4rem 0.9rem;
+    }
+    .header-logo-left { height: 22px; }
+    .header-logo-right { height: 36px; max-width: 90px; }
+    .header-divider { height: 14px; }
 }
 
 /* ==================== TIMER STATE ==================== */
@@ -828,6 +858,22 @@
     max-width: 1200px;
     z-index: 1;
     position: relative;
+}
+
+.welcome-state::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px;
+    height: 500px;
+    background: radial-gradient(circle at 30% 30%, rgba(10, 51, 139, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(252, 80, 0, 0.18) 0%, transparent 60%);
+    filter: blur(100px);
+    z-index: -1;
+    animation: glow-pulse 9s infinite alternate ease-in-out;
+    pointer-events: none;
 }
 
 /* 3D Parallax Ambient Glows */
