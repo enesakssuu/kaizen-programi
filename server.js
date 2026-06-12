@@ -48,6 +48,20 @@ function getDefaultData() {
     };
 }
 
+function ensureDefaults(data) {
+    if (!data || typeof data !== 'object') {
+        return getDefaultData();
+    }
+    const defaults = getDefaultData();
+    return {
+        projects: Array.isArray(data.projects) ? data.projects : defaults.projects,
+        jurors: Array.isArray(data.jurors) ? data.jurors : defaults.jurors,
+        scores: (data.scores && typeof data.scores === 'object') ? data.scores : defaults.scores,
+        presentation: { ...defaults.presentation, ...(data.presentation || {}) },
+        settings: { ...defaults.settings, ...(data.settings || {}) }
+    };
+}
+
 async function readData() {
     const firebaseDbUrl = process.env.FIREBASE_URL;
     if (firebaseDbUrl) {
@@ -55,7 +69,7 @@ async function readData() {
             const url = firebaseDbUrl.endsWith('.json') ? firebaseDbUrl : `${firebaseDbUrl.replace(/\/$/, '')}/.json`;
             const res = await fetch(url);
             const data = await res.json();
-            return data || getDefaultData();
+            return ensureDefaults(data);
         } catch (e) {
             console.error("Firebase read error:", e);
             return getDefaultData();
@@ -63,7 +77,7 @@ async function readData() {
     } else {
         try {
             const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-            return JSON.parse(raw);
+            return ensureDefaults(JSON.parse(raw));
         } catch (e) {
             const defaultData = getDefaultData();
             writeDataSync(defaultData);
