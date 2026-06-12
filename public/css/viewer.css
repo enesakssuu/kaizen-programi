@@ -806,3 +806,138 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
 }
+
+/* ==================== WELCOME STATE ==================== */
+.welcome-state {
+    text-align: center;
+    animation: fade-in 0.8s ease;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.welcome-card {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.03), 
+        0 1px 3px rgba(10, 51, 139, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: var(--radius-lg);
+    padding: 3.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 650px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    animation: float-logo 6s infinite ease-in-out;
+}
+
+.welcome-logo-container {
+    width: 100%;
+    max-width: 250px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    filter: drop-shadow(0 6px 12px rgba(10, 51, 139, 0.06));
+}
+
+.welcome-logo-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.welcome-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--primary) 100%);
+    border-radius: var(--radius-full);
+    margin: 1rem 0 1.5rem;
+}
+
+.welcome-title {
+    font-family: var(--font-display);
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--primary) 20%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+    line-height: 1.1;
+}
+
+.welcome-year {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.2em;
+    margin-bottom: 2rem;
+}
+
+.welcome-glow-text {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    background: rgba(252, 80, 0, 0.07);
+    padding: 0.4rem 1.8rem 0.4rem 2.1rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(252, 80, 0, 0.12);
+    box-shadow: 0 0 20px rgba(252, 80, 0, 0.05);
+    animation: breathing-pulse 2s infinite ease-in-out;
+}
+
+.welcome-decor-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.welcome-decor-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.3;
+}
+
+.welcome-decor-dots span:nth-child(2) {
+    background: var(--primary);
+    opacity: 0.5;
+}
+
+.welcome-decor-dots span:nth-child(3) {
+    background: var(--accent);
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .welcome-card {
+        padding: 2.5rem 2rem;
+        max-width: 90%;
+    }
+    .welcome-title {
+        font-size: 1.8rem;
+    }
+    .welcome-year {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+    .welcome-logo-container {
+        max-width: 180px;
+    }
+}

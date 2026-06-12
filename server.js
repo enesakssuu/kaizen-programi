@@ -559,7 +559,7 @@ app.post('/api/presentation/reset', async (req, res) => {
 // ==================== PRESENTATION MODE & TIMER ENDPOINTS ====================
 app.post('/api/presentation/mode', async (req, res) => {
     const { mode } = req.body;
-    if (mode !== 'timer' && mode !== 'waiting') {
+    if (mode !== 'timer' && mode !== 'waiting' && mode !== 'welcome') {
         return res.status(400).json({ message: 'Geçersiz mod' });
     }
     const data = await readData();

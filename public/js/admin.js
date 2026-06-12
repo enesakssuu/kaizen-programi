@@ -56,6 +56,7 @@
     const $resetPresentationBtn = document.getElementById('reset-presentation-btn');
     const $modeTimerBtn = document.getElementById('mode-timer-btn');
     const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
+    const $modeWelcomeBtn = document.getElementById('mode-welcome-btn');
     const $timerTargetInput = document.getElementById('timer-target-input');
     const $timerSetBtn = document.getElementById('timer-set-btn');
     const $adminTimerDisplay = document.getElementById('admin-timer-display');
@@ -119,6 +120,9 @@
         $resetPresentationBtn.addEventListener('click', resetPresentation);
         $modeTimerBtn.addEventListener('click', () => changePresentationMode('timer'));
         $modeWaitingBtn.addEventListener('click', () => changePresentationMode('waiting'));
+        if ($modeWelcomeBtn) {
+            $modeWelcomeBtn.addEventListener('click', () => changePresentationMode('welcome'));
+        }
         $timerSetBtn.addEventListener('click', setTimerDuration);
         $timerStartBtn.addEventListener('click', () => controlTimer('start'));
         $timerPauseBtn.addEventListener('click', () => controlTimer('pause'));
@@ -535,13 +539,9 @@
     }
 
     function syncModeButtons(mode) {
-        if (mode === 'timer') {
-            $modeTimerBtn.className = 'btn w-full btn-primary';
-            $modeWaitingBtn.className = 'btn w-full btn-ghost';
-        } else {
-            $modeTimerBtn.className = 'btn w-full btn-ghost';
-            $modeWaitingBtn.className = 'btn w-full btn-primary';
-        }
+        if ($modeWelcomeBtn) $modeWelcomeBtn.className = mode === 'welcome' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
+        if ($modeTimerBtn) $modeTimerBtn.className = mode === 'timer' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
+        if ($modeWaitingBtn) $modeWaitingBtn.className = mode === 'waiting' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
     }
 
     async function changePresentationMode(mode) {
@@ -555,7 +555,10 @@
             if (data.success) {
                 presentationStatus.mode = mode;
                 syncModeButtons(mode);
-                showToast(`Ekran modu güncellendi: ${mode === 'timer' ? 'Sayaç' : 'Bekleme'}`, 'success');
+                let modeText = 'Karşılama';
+                if (mode === 'timer') modeText = 'Sayaç';
+                else if (mode === 'waiting') modeText = 'Bekleme';
+                showToast(`Ekran modu güncellendi: ${modeText}`, 'success');
             }
         } catch (err) {
             showToast('Ekran modu değiştirilemedi', 'error');

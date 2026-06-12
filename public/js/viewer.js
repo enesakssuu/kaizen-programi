@@ -27,6 +27,7 @@
     const $particles = document.getElementById('particles');
     const $waitingState = document.getElementById('waiting-state');
     const $timerState = document.getElementById('timer-state');
+    const $welcomeState = document.getElementById('welcome-state');
     const $timerDays = document.getElementById('timer-days');
     const $timerHours = document.getElementById('timer-hours');
     const $timerMinutes = document.getElementById('timer-minutes');
@@ -233,6 +234,7 @@
         $rankingsTitle.textContent = '';
         hideOverlay($countdownOverlay);
         hideOverlay($revealOverlay);
+        if ($welcomeState) $welcomeState.classList.add('hidden');
         $confettiContainer.classList.add('hidden');
         $confettiContainer.innerHTML = '';
         isAnimating = false;
@@ -241,8 +243,9 @@
 
     // ==================== COUNTDOWN ====================
     function startCountdown(rank, project) {
-        // Hide waiting, show countdown
+        // Hide waiting and welcome states, show countdown
         $waitingState.classList.add('hidden');
+        if ($welcomeState) $welcomeState.classList.add('hidden');
         showOverlay($countdownOverlay);
         hideOverlay($revealOverlay);
 
@@ -379,6 +382,7 @@
         if (isAnimating || revealedProjects.length > 0) {
             $waitingState.classList.add('hidden');
             $timerState.classList.add('hidden');
+            if ($welcomeState) $welcomeState.classList.add('hidden');
             $rankingsSection.classList.remove('hidden');
             $viewerStage.classList.remove('timer-only');
             return;
@@ -387,11 +391,19 @@
         if (presentationMode === 'timer') {
             $timerState.classList.remove('hidden');
             $waitingState.classList.add('hidden');
+            if ($welcomeState) $welcomeState.classList.add('hidden');
+            $rankingsSection.classList.add('hidden');
+            $viewerStage.classList.add('timer-only');
+        } else if (presentationMode === 'welcome') {
+            if ($welcomeState) $welcomeState.classList.remove('hidden');
+            $timerState.classList.add('hidden');
+            $waitingState.classList.add('hidden');
             $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
         } else {
             $waitingState.classList.remove('hidden');
             $timerState.classList.add('hidden');
+            if ($welcomeState) $welcomeState.classList.add('hidden');
             $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
         }
