@@ -62,25 +62,33 @@
     gap: 1.5rem;
     margin: 0 auto 0.75rem;
     max-width: 600px;
-    width: 100%;
+    width: fit-content;
+    background: rgba(15, 23, 42, 0.96); /* Dark slate glassmorphic pill */
+    padding: 0.6rem 1.8rem;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .header-logo-left {
-    height: 38px;
+    height: 34px;
     width: auto;
     object-fit: contain;
+    filter: brightness(0) invert(1); /* Invert dark text to white */
 }
 
 .header-logo-right {
-    height: 42px;
+    height: 46px;
     width: auto;
     object-fit: contain;
 }
 
 .header-divider {
     width: 1px;
-    height: 20px;
-    background: rgba(0, 0, 0, 0.1);
+    height: 18px;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .viewer-title {
@@ -818,15 +826,6 @@
     position: relative;
 }
 
-#welcome-particles-canvas {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: -1;
-}
-
 /* 3D Parallax Ambient Glows */
 .welcome-bg-glow {
     position: absolute;
@@ -901,6 +900,13 @@
     text-transform: uppercase;
     text-align: center;
     text-shadow: 0 2px 10px rgba(252, 80, 0, 0.12);
+}
+
+.welcome-top-brand,
+.welcome-heading,
+.welcome-subtitle-bubble {
+    transition: transform 0.2s cubic-bezier(0.1, 0.8, 0.3, 1);
+    will-change: transform;
 }
 
 @media (max-width: 992px) {
