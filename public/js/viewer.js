@@ -19,7 +19,10 @@
     const $particles = document.getElementById('particles');
     const $waitingState = document.getElementById('waiting-state');
     const $timerState = document.getElementById('timer-state');
-    const $timerDisplay = document.getElementById('timer-display');
+    const $timerDays = document.getElementById('timer-days');
+    const $timerHours = document.getElementById('timer-hours');
+    const $timerMinutes = document.getElementById('timer-minutes');
+    const $timerSeconds = document.getElementById('timer-seconds');
     const $countdownOverlay = document.getElementById('countdown-overlay');
     const $countdownNumber = document.getElementById('countdown-number');
     const $countdownRankText = document.getElementById('countdown-rank-text');
@@ -148,9 +151,15 @@
                 remaining = Math.max(0, timer.remaining - elapsed);
             }
 
-            const minutes = Math.floor(remaining / 60);
+            const days = Math.floor(remaining / (24 * 3600));
+            const hours = Math.floor((remaining % (24 * 3600)) / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
             const seconds = remaining % 60;
-            $timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            $timerDays.textContent = String(days).padStart(2, '0');
+            $timerHours.textContent = String(hours).padStart(2, '0');
+            $timerMinutes.textContent = String(minutes).padStart(2, '0');
+            $timerSeconds.textContent = String(seconds).padStart(2, '0');
         }
 
         tick();

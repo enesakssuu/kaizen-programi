@@ -53,6 +53,8 @@
     const $resetPresentationBtn = document.getElementById('reset-presentation-btn');
     const $modeTimerBtn = document.getElementById('mode-timer-btn');
     const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
+    const $timerDaysInput = document.getElementById('timer-days-input');
+    const $timerHoursInput = document.getElementById('timer-hours-input');
     const $timerMinutesInput = document.getElementById('timer-minutes-input');
     const $timerSetBtn = document.getElementById('timer-set-btn');
     const $adminTimerDisplay = document.getElementById('admin-timer-display');
@@ -483,9 +485,16 @@
                 remaining = Math.max(0, timer.remaining - elapsed);
             }
 
-            const minutes = Math.floor(remaining / 60);
+            const days = Math.floor(remaining / (24 * 3600));
+            const hours = Math.floor((remaining % (24 * 3600)) / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
             const seconds = remaining % 60;
-            $adminTimerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            let displayStr = '';
+            if (days > 0) displayStr += `${days}g `;
+            if (hours > 0 || days > 0) displayStr += `${hours}s `;
+            displayStr += `${String(minutes).padStart(2, '0')}d ${String(seconds).padStart(2, '0')}sn`;
+            $adminTimerDisplay.textContent = displayStr;
         }
 
         tick();
@@ -523,12 +532,16 @@
     }
 
     async function setTimerDuration() {
-        const minutes = parseInt($timerMinutesInput.value);
-        if (isNaN(minutes) || minutes < 1 || minutes > 120) {
-            showToast('Lütfen 1 ile 120 arasında bir dakika girin.', 'error');
+        const days = parseInt($timerDaysInput.value) || 0;
+        const hours = parseInt($timerHoursInput.value) || 0;
+        const minutes = parseInt($timerMinutesInput.value) || 0;
+
+        if (days < 0 || hours < 0 || minutes < 0 || (days === 0 && hours === 0 && minutes === 0)) {
+            showToast('Lütfen geçerli bir süre girin.', 'error');
             return;
         }
-        const duration = minutes * 60;
+
+        const duration = (days * 24 * 3600) + (hours * 3600) + (minutes * 60);
         try {
             const res = await fetch('/api/presentation/timer/set', {
                 method: 'POST',

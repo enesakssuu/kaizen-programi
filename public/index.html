@@ -27,11 +27,27 @@
         <main class="viewer-stage" id="viewer-stage">
             <!-- Timer State -->
             <div class="timer-state hidden" id="timer-state">
-                <div class="timer-visual">
-                    <span id="timer-display">10:00</span>
+                <div class="timer-grid">
+                    <div class="timer-segment">
+                        <span class="timer-val" id="timer-days">00</span>
+                        <span class="timer-unit">GÜN</span>
+                    </div>
+                    <div class="timer-divider">:</div>
+                    <div class="timer-segment">
+                        <span class="timer-val" id="timer-hours">00</span>
+                        <span class="timer-unit">SAAT</span>
+                    </div>
+                    <div class="timer-divider">:</div>
+                    <div class="timer-segment">
+                        <span class="timer-val" id="timer-minutes">10</span>
+                        <span class="timer-unit">DAKİKA</span>
+                    </div>
+                    <div class="timer-divider">:</div>
+                    <div class="timer-segment">
+                        <span class="timer-val" id="timer-seconds">00</span>
+                        <span class="timer-unit">SANİYE</span>
+                    </div>
                 </div>
-                <p class="timer-text">Oylamanın Başlamasına Kalan Süre</p>
-                <p class="timer-subtext">Kaizen Yarışması değerlendirmeleri yakında başlayacaktır.</p>
             </div>
 
             <!-- Waiting State -->
