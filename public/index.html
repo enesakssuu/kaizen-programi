@@ -25,8 +25,17 @@
 
         <!-- Main Stage -->
         <main class="viewer-stage" id="viewer-stage">
+            <!-- Timer State -->
+            <div class="timer-state hidden" id="timer-state">
+                <div class="timer-visual">
+                    <span id="timer-display">10:00</span>
+                </div>
+                <p class="timer-text">Oylamanın Başlamasına Kalan Süre</p>
+                <p class="timer-subtext">Kaizen Yarışması değerlendirmeleri yakında başlayacaktır.</p>
+            </div>
+
             <!-- Waiting State -->
-            <div class="waiting-state" id="waiting-state">
+            <div class="waiting-state hidden" id="waiting-state">
                 <div class="waiting-visual">
                     <div class="ring ring-1"></div>
                     <div class="ring ring-2"></div>

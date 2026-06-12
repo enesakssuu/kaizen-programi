@@ -29,9 +29,16 @@ function getDefaultData() {
         jurors: [],
         scores: {},
         presentation: {
+            mode: "timer", // "timer", "waiting"
             revealedRanks: [],
             isRevealing: false,
-            currentRank: null
+            currentRank: null,
+            timer: {
+                duration: 600, // 10 minutes default
+                remaining: 600,
+                isRunning: false,
+                lastUpdated: Date.now()
+            }
         },
         settings: {
             questions: [
@@ -53,11 +60,24 @@ function ensureDefaults(data) {
         return getDefaultData();
     }
     const defaults = getDefaultData();
+    const presentation = data.presentation || {};
+    const timer = presentation.timer || {};
     return {
         projects: Array.isArray(data.projects) ? data.projects : defaults.projects,
         jurors: Array.isArray(data.jurors) ? data.jurors : defaults.jurors,
         scores: (data.scores && typeof data.scores === 'object') ? data.scores : defaults.scores,
-        presentation: { ...defaults.presentation, ...(data.presentation || {}) },
+        presentation: {
+            mode: presentation.mode || defaults.presentation.mode,
+            revealedRanks: Array.isArray(presentation.revealedRanks) ? presentation.revealedRanks : defaults.presentation.revealedRanks,
+            isRevealing: typeof presentation.isRevealing === 'boolean' ? presentation.isRevealing : defaults.presentation.isRevealing,
+            currentRank: presentation.currentRank !== undefined ? presentation.currentRank : defaults.presentation.currentRank,
+            timer: {
+                duration: typeof timer.duration === 'number' ? timer.duration : defaults.presentation.timer.duration,
+                remaining: typeof timer.remaining === 'number' ? timer.remaining : defaults.presentation.timer.remaining,
+                isRunning: typeof timer.isRunning === 'boolean' ? timer.isRunning : defaults.presentation.timer.isRunning,
+                lastUpdated: typeof timer.lastUpdated === 'number' ? timer.lastUpdated : defaults.presentation.timer.lastUpdated
+            }
+        },
         settings: { ...defaults.settings, ...(data.settings || {}) }
     };
 }
@@ -331,11 +351,9 @@ app.post('/api/settings/reset/projects', async (req, res) => {
     const data = await readData();
     data.projects = [];
     data.scores = {};
-    data.presentation = {
-        revealedRanks: [],
-        isRevealing: false,
-        currentRank: null
-    };
+    data.presentation.revealedRanks = [];
+    data.presentation.isRevealing = false;
+    data.presentation.currentRank = null;
     await writeData(data);
     res.json({ success: true });
 });
@@ -344,11 +362,9 @@ app.post('/api/settings/reset/jurors', async (req, res) => {
     const data = await readData();
     data.jurors = [];
     data.scores = {};
-    data.presentation = {
-        revealedRanks: [],
-        isRevealing: false,
-        currentRank: null
-    };
+    data.presentation.revealedRanks = [];
+    data.presentation.isRevealing = false;
+    data.presentation.currentRank = null;
     await writeData(data);
     res.json({ success: true });
 });
@@ -356,11 +372,9 @@ app.post('/api/settings/reset/jurors', async (req, res) => {
 app.post('/api/settings/reset/scores', async (req, res) => {
     const data = await readData();
     data.scores = {};
-    data.presentation = {
-        revealedRanks: [],
-        isRevealing: false,
-        currentRank: null
-    };
+    data.presentation.revealedRanks = [];
+    data.presentation.isRevealing = false;
+    data.presentation.currentRank = null;
     await writeData(data);
     res.json({ success: true });
 });
@@ -370,11 +384,7 @@ app.post('/api/settings/reset/all', async (req, res) => {
     data.projects = [];
     data.jurors = [];
     data.scores = {};
-    data.presentation = {
-        revealedRanks: [],
-        isRevealing: false,
-        currentRank: null
-    };
+    data.presentation = getDefaultData().presentation;
     await writeData(data);
     res.json({ success: true });
 });
@@ -427,13 +437,68 @@ app.post('/api/presentation/reveal', async (req, res) => {
 
 app.post('/api/presentation/reset', async (req, res) => {
     const data = await readData();
-    data.presentation = {
-        revealedRanks: [],
-        isRevealing: false,
-        currentRank: null
-    };
+    data.presentation.revealedRanks = [];
+    data.presentation.isRevealing = false;
+    data.presentation.currentRank = null;
     await writeData(data);
     res.json({ success: true });
+});
+
+// ==================== PRESENTATION MODE & TIMER ENDPOINTS ====================
+app.post('/api/presentation/mode', async (req, res) => {
+    const { mode } = req.body;
+    if (mode !== 'timer' && mode !== 'waiting') {
+        return res.status(400).json({ message: 'Geçersiz mod' });
+    }
+    const data = await readData();
+    data.presentation.mode = mode;
+    await writeData(data);
+    res.json({ success: true, mode: data.presentation.mode });
+});
+
+app.post('/api/presentation/timer/control', async (req, res) => {
+    const { action } = req.body; // 'start', 'pause', 'reset'
+    const data = await readData();
+    const timer = data.presentation.timer;
+    const now = Date.now();
+
+    if (action === 'start') {
+        timer.isRunning = true;
+        timer.lastUpdated = now;
+    } else if (action === 'pause') {
+        if (timer.isRunning) {
+            const elapsed = Math.floor((now - timer.lastUpdated) / 1000);
+            timer.remaining = Math.max(0, timer.remaining - elapsed);
+        }
+        timer.isRunning = false;
+        timer.lastUpdated = now;
+    } else if (action === 'reset') {
+        timer.remaining = timer.duration;
+        timer.isRunning = false;
+        timer.lastUpdated = now;
+    } else {
+        return res.status(400).json({ message: 'Geçersiz eylem' });
+    }
+
+    await writeData(data);
+    res.json({ success: true, timer });
+});
+
+app.post('/api/presentation/timer/set', async (req, res) => {
+    const { duration } = req.body; // duration in seconds
+    if (typeof duration !== 'number' || duration <= 0) {
+        return res.status(400).json({ message: 'Geçersiz süre' });
+    }
+    const data = await readData();
+    const now = Date.now();
+    data.presentation.timer = {
+        duration: duration,
+        remaining: duration,
+        isRunning: false,
+        lastUpdated: now
+    };
+    await writeData(data);
+    res.json({ success: true, timer: data.presentation.timer });
 });
 
 // ==================== ADMIN ALL SCORES ====================

@@ -11,10 +11,15 @@
     let isAnimating = false;
     let countdownInterval = null;
     let revealTimeout = null;
+    let presentationMode = 'timer'; // 'timer' or 'waiting'
+    let timerState = null;
+    let localTimerInterval = null;
 
     // ==================== DOM ELEMENTS ====================
     const $particles = document.getElementById('particles');
     const $waitingState = document.getElementById('waiting-state');
+    const $timerState = document.getElementById('timer-state');
+    const $timerDisplay = document.getElementById('timer-display');
     const $countdownOverlay = document.getElementById('countdown-overlay');
     const $countdownNumber = document.getElementById('countdown-number');
     const $countdownRankText = document.getElementById('countdown-rank-text');
@@ -72,6 +77,7 @@
     function handleStatusUpdate(data) {
         rankings = data.rankings || [];
         countdownSeconds = data.settings?.countdownSeconds || 10;
+        presentationMode = data.presentation?.mode || 'timer';
         
         const revealed = data.presentation?.revealedRanks || [];
         
@@ -79,6 +85,11 @@
         if (revealed.length === 0 && revealedProjects.length > 0) {
             handleReset();
             return;
+        }
+
+        const timer = data.presentation?.timer;
+        if (timer) {
+            syncTimer(timer);
         }
 
         if (revealed.length > 0 && rankings.length > 0) {
@@ -118,6 +129,36 @@
         updateWaitingVisibility();
     }
 
+    function syncTimer(timer) {
+        const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}`;
+        if (timerState === stateKey) {
+            return;
+        }
+        timerState = stateKey;
+
+        if (localTimerInterval) {
+            clearInterval(localTimerInterval);
+            localTimerInterval = null;
+        }
+
+        function tick() {
+            let remaining = timer.remaining;
+            if (timer.isRunning) {
+                const elapsed = Math.floor((Date.now() - timer.lastUpdated) / 1000);
+                remaining = Math.max(0, timer.remaining - elapsed);
+            }
+
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            $timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        tick();
+        if (timer.isRunning && timer.remaining > 0) {
+            localTimerInterval = setInterval(tick, 1000);
+        }
+    }
+
     function handleReset() {
         // Clear all timers
         if (countdownInterval) {
@@ -128,6 +169,11 @@
             clearTimeout(revealTimeout);
             revealTimeout = null;
         }
+        if (localTimerInterval) {
+            clearInterval(localTimerInterval);
+            localTimerInterval = null;
+        }
+        timerState = null;
 
         revealedProjects = [];
         $rankingsList.innerHTML = '';
@@ -272,10 +318,18 @@
 
     // ==================== UI HELPERS ====================
     function updateWaitingVisibility() {
-        if (isAnimating || revealedProjects.length >= 10) {
+        if (isAnimating || revealedProjects.length > 0) {
+            $waitingState.classList.add('hidden');
+            $timerState.classList.add('hidden');
+            return;
+        }
+
+        if (presentationMode === 'timer') {
+            $timerState.classList.remove('hidden');
             $waitingState.classList.add('hidden');
         } else {
             $waitingState.classList.remove('hidden');
+            $timerState.classList.add('hidden');
         }
     }
 

@@ -51,6 +51,14 @@
     const $revealNextBtn = document.getElementById('reveal-next-btn');
     const $revealInfo = document.getElementById('reveal-info');
     const $resetPresentationBtn = document.getElementById('reset-presentation-btn');
+    const $modeTimerBtn = document.getElementById('mode-timer-btn');
+    const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
+    const $timerMinutesInput = document.getElementById('timer-minutes-input');
+    const $timerSetBtn = document.getElementById('timer-set-btn');
+    const $adminTimerDisplay = document.getElementById('admin-timer-display');
+    const $timerStartBtn = document.getElementById('timer-start-btn');
+    const $timerPauseBtn = document.getElementById('timer-pause-btn');
+    const $timerResetBtn = document.getElementById('timer-reset-btn');
 
     // Settings
     const $countdownInput = document.getElementById('countdown-seconds-input');
@@ -106,6 +114,12 @@
         // Presentation
         $revealNextBtn.addEventListener('click', revealNext);
         $resetPresentationBtn.addEventListener('click', resetPresentation);
+        $modeTimerBtn.addEventListener('click', () => changePresentationMode('timer'));
+        $modeWaitingBtn.addEventListener('click', () => changePresentationMode('waiting'));
+        $timerSetBtn.addEventListener('click', setTimerDuration);
+        $timerStartBtn.addEventListener('click', () => controlTimer('start'));
+        $timerPauseBtn.addEventListener('click', () => controlTimer('pause'));
+        $timerResetBtn.addEventListener('click', () => controlTimer('reset'));
 
         // Settings
         $saveCountdownBtn.addEventListener('click', saveCountdown);
@@ -437,8 +451,116 @@
             rankings = data.rankings;
             settings = data.settings;
             renderPresentationControl();
+            if (presentationStatus) {
+                syncAdminTimer(presentationStatus.timer);
+                syncModeButtons(presentationStatus.mode);
+            }
         } catch (err) {
             showToast('Sunum durumu yüklenemedi', 'error');
+        }
+    }
+
+    let adminTimerInterval = null;
+    let adminTimerState = null;
+
+    function syncAdminTimer(timer) {
+        if (!timer) return;
+        const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}`;
+        if (adminTimerState === stateKey) {
+            return;
+        }
+        adminTimerState = stateKey;
+
+        if (adminTimerInterval) {
+            clearInterval(adminTimerInterval);
+            adminTimerInterval = null;
+        }
+
+        function tick() {
+            let remaining = timer.remaining;
+            if (timer.isRunning) {
+                const elapsed = Math.floor((Date.now() - timer.lastUpdated) / 1000);
+                remaining = Math.max(0, timer.remaining - elapsed);
+            }
+
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            $adminTimerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        tick();
+        if (timer.isRunning && timer.remaining > 0) {
+            adminTimerInterval = setInterval(tick, 1000);
+        }
+    }
+
+    function syncModeButtons(mode) {
+        if (mode === 'timer') {
+            $modeTimerBtn.className = 'btn w-full btn-primary';
+            $modeWaitingBtn.className = 'btn w-full btn-ghost';
+        } else {
+            $modeTimerBtn.className = 'btn w-full btn-ghost';
+            $modeWaitingBtn.className = 'btn w-full btn-primary';
+        }
+    }
+
+    async function changePresentationMode(mode) {
+        try {
+            const res = await fetch('/api/presentation/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode })
+            });
+            const data = await res.json();
+            if (data.success) {
+                presentationStatus.mode = mode;
+                syncModeButtons(mode);
+                showToast(`Ekran modu güncellendi: ${mode === 'timer' ? 'Sayaç' : 'Bekleme'}`, 'success');
+            }
+        } catch (err) {
+            showToast('Ekran modu değiştirilemedi', 'error');
+        }
+    }
+
+    async function setTimerDuration() {
+        const minutes = parseInt($timerMinutesInput.value);
+        if (isNaN(minutes) || minutes < 1 || minutes > 120) {
+            showToast('Lütfen 1 ile 120 arasında bir dakika girin.', 'error');
+            return;
+        }
+        const duration = minutes * 60;
+        try {
+            const res = await fetch('/api/presentation/timer/set', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ duration })
+            });
+            const data = await res.json();
+            if (data.success) {
+                presentationStatus.timer = data.timer;
+                syncAdminTimer(data.timer);
+                showToast('Sayaç süresi ayarlandı.', 'success');
+            }
+        } catch (err) {
+            showToast('Sayaç ayarlanamadı', 'error');
+        }
+    }
+
+    async function controlTimer(action) {
+        try {
+            const res = await fetch('/api/presentation/timer/control', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                presentationStatus.timer = data.timer;
+                syncAdminTimer(data.timer);
+                showToast(`Sayaç ${action === 'start' ? 'başlatıldı' : action === 'pause' ? 'durduruldu' : 'sıfırlandı'}.`, 'success');
+            }
+        } catch (err) {
+            showToast('Sayaç kontrol hatası', 'error');
         }
     }
 
