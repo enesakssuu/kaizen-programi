@@ -815,6 +815,34 @@
     width: 100%;
     max-width: 1200px;
     z-index: 1;
+    position: relative;
+}
+
+/* 3D Parallax Ambient Glows */
+.welcome-bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.08; /* Very subtle and clean */
+    pointer-events: none;
+    z-index: -1;
+    transition: transform 0.1s ease-out;
+}
+
+.welcome-glow-blue {
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, #0a338b 0%, transparent 70%);
+    top: -120px;
+    left: -120px;
+}
+
+.welcome-glow-orange {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #fc5000 0%, transparent 70%);
+    bottom: -150px;
+    right: -150px;
 }
 
 .welcome-top-brand {
@@ -853,16 +881,17 @@
     letter-spacing: -0.01em;
 }
 
-.welcome-subtitle-italic {
-    font-family: 'Outfit', var(--font-sans);
-    font-size: clamp(2.4rem, 4vw, 4.6rem);
-    font-weight: 300;
-    font-style: italic;
+.welcome-subtitle-bubble {
+    font-family: 'Fredoka', 'Lilita One', sans-serif;
+    font-size: clamp(2.4rem, 4.1vw, 4.6rem);
+    font-weight: 900;
     color: #fc5000; /* Corporate Orange */
-    margin: 1.5rem 0 0 0;
+    margin: 1.8rem 0 0 0;
     letter-spacing: 0.04em;
     line-height: 1.1;
+    text-transform: uppercase;
     text-align: center;
+    text-shadow: 0 2px 10px rgba(252, 80, 0, 0.12);
 }
 
 @media (max-width: 992px) {
@@ -872,7 +901,7 @@
         gap: 0.3rem;
         font-size: 3rem;
     }
-    .welcome-subtitle-italic {
+    .welcome-subtitle-bubble {
         font-size: 2.2rem;
         margin-top: 1rem;
     }

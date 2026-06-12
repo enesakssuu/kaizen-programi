@@ -60,6 +60,8 @@
     // ==================== PARALLAX ====================
     function initParallax() {
         const $grid = document.querySelector('.grid-overlay');
+        const $glowBlue = document.querySelector('.welcome-glow-blue');
+        const $glowOrange = document.querySelector('.welcome-glow-orange');
         
         document.addEventListener('mousemove', (e) => {
             const moveX = (e.clientX - window.innerWidth / 2);
@@ -72,6 +74,14 @@
             if ($viewerStage) {
                 // Foreground shifts in opposite direction to create depth
                 $viewerStage.style.transform = `translate(${moveX * -0.008}px, ${moveY * -0.008}px)`;
+            }
+            if ($glowBlue) {
+                // Glow shifts with mouse
+                $glowBlue.style.transform = `translate(${moveX * 0.02}px, ${moveY * 0.02}px)`;
+            }
+            if ($glowOrange) {
+                // Glow shifts in opposite direction
+                $glowOrange.style.transform = `translate(${moveX * -0.015}px, ${moveY * -0.015}px)`;
             }
         });
     }
