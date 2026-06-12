@@ -3,6 +3,7 @@ node_modules/
 browser/
 *.webp
 *.png
+!public/logo.png
 data/data.json
 .system_generated/
 .gemini/

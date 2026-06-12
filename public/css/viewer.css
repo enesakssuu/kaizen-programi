@@ -94,11 +94,45 @@
     justify-content: center;
 }
 
+.waiting-logo-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 30px 60px rgba(10, 51, 139, 0.08), 
+        0 10px 20px rgba(252, 80, 0, 0.03), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: var(--radius-2xl);
+    padding: 3.5rem 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+    max-width: 500px;
+    width: 100%;
+    animation: float-slow 15s infinite ease-in-out;
+}
+
+.waiting-logo-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.waiting-logo-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 24px rgba(10, 51, 139, 0.12));
+}
+
 .waiting-visual {
     position: relative;
-    width: 140px;
-    height: 140px;
-    margin-bottom: 2rem;
+    width: 100px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -106,38 +140,39 @@
 
 .waiting-visual .ring {
     position: absolute;
-    border: 1px solid rgba(0, 113, 227, 0.08);
+    border: 1px solid rgba(10, 51, 139, 0.04);
     border-radius: 50%;
     animation: rotate-ring linear infinite;
 }
 
 .waiting-visual .ring-1 {
-    width: 130px;
-    height: 130px;
-    border-top: 2px solid var(--primary);
-    animation-duration: 5s;
+    width: 90px;
+    height: 90px;
+    border-top: 2px solid var(--accent);
+    animation-duration: 4s;
 }
 
 .waiting-visual .ring-2 {
-    width: 90px;
-    height: 90px;
-    border-bottom: 2px solid var(--primary-light);
-    animation-duration: 4s;
+    width: 65px;
+    height: 65px;
+    border-bottom: 2px solid var(--primary);
+    animation-duration: 3s;
     animation-direction: reverse;
 }
 
 .waiting-visual .ring-3 {
-    width: 50px;
-    height: 50px;
-    border-left: 2px solid var(--success);
-    animation-duration: 3s;
+    width: 40px;
+    height: 40px;
+    border-left: 2px solid var(--accent-light);
+    animation-duration: 2s;
 }
 
 .waiting-visual .pulse-core {
-    width: 18px;
-    height: 18px;
-    background: var(--primary);
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
     border-radius: 50%;
+    box-shadow: 0 0 15px var(--accent);
     animation: breathing-pulse 2s ease-in-out infinite;
 }
 
@@ -546,11 +581,28 @@
 .timer-state {
     text-align: center;
     animation: fade-in 0.8s ease;
-    padding: 3rem 2rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.timer-logo-container {
+    width: 100%;
+    max-width: 440px;
+    margin-bottom: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: float-slow 18s infinite ease-in-out;
+}
+
+.timer-logo-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 24px rgba(10, 51, 139, 0.12));
 }
 
 .timer-grid {
@@ -558,13 +610,18 @@
     align-items: center;
     justify-content: center;
     gap: 1.5rem;
-    background: rgba(255, 255, 255, 0.75);
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    box-shadow: var(--shadow-xl);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 30px 60px rgba(10, 51, 139, 0.08), 
+        0 10px 20px rgba(252, 80, 0, 0.03), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     border-radius: var(--radius-2xl);
-    padding: 3rem 4rem;
+    padding: 3.5rem 5rem;
+    position: relative;
+    z-index: 1;
 }
 
 .timer-segment {
@@ -576,19 +633,22 @@
 
 .timer-val {
     font-family: var(--font-display);
-    font-size: 6.5rem;
-    font-weight: 850;
-    color: var(--primary);
-    line-height: 1;
-    letter-spacing: -0.03em;
+    font-size: 7rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary) 20%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    filter: drop-shadow(0 4px 12px rgba(10, 51, 139, 0.05));
 }
 
 .timer-unit {
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-secondary);
-    letter-spacing: 0.15em;
-    margin-top: 0.8rem;
+    letter-spacing: 0.2em;
+    margin-top: 1rem;
     text-transform: uppercase;
 }
 
@@ -596,10 +656,10 @@
     font-family: var(--font-display);
     font-size: 5rem;
     font-weight: 700;
-    color: rgba(0, 113, 227, 0.3);
+    color: rgba(252, 80, 0, 0.45);
     line-height: 1;
     animation: pulse-divider 2s infinite;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
 }
 
 @keyframes pulse-divider {
@@ -609,30 +669,32 @@
 
 @media (max-width: 992px) {
     .timer-grid {
-        padding: 2rem;
-        gap: 0.8rem;
+        padding: 2.5rem 3rem;
+        gap: 1rem;
     }
     .timer-segment {
-        min-width: 90px;
+        min-width: 95px;
     }
     .timer-val {
-        font-size: 4.5rem;
+        font-size: 5rem;
     }
     .timer-divider {
-        font-size: 3rem;
+        font-size: 3.5rem;
+        transform: translateY(-5px);
     }
 }
 
 @media (max-width: 576px) {
     .timer-grid {
         flex-wrap: wrap;
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
+        gap: 0.8rem;
     }
     .timer-segment {
-        min-width: 70px;
+        min-width: 75px;
     }
     .timer-val {
-        font-size: 3rem;
+        font-size: 3.5rem;
     }
     .timer-divider {
         display: none;
@@ -647,44 +709,44 @@
 
 .timer-glow {
     position: absolute;
-    top: 50%;
+    top: 55%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 650px;
-    height: 350px;
-    background: radial-gradient(circle, rgba(0, 113, 227, 0.12) 0%, rgba(0, 240, 255, 0.04) 50%, transparent 100%);
-    filter: blur(70px);
+    width: 750px;
+    height: 400px;
+    background: radial-gradient(circle at 30% 30%, rgba(10, 51, 139, 0.15) 0%, transparent 60%), radial-gradient(circle at 70% 70%, rgba(252, 80, 0, 0.15) 0%, transparent 60%);
+    filter: blur(80px);
     z-index: -1;
-    animation: glow-pulse 8s infinite alternate ease-in-out;
+    animation: glow-pulse 9s infinite alternate ease-in-out;
     pointer-events: none;
 }
 
 .timer-decor-1 {
     position: absolute;
-    top: -40px;
-    left: -80px;
-    width: 140px;
-    height: 140px;
+    top: -50px;
+    left: -90px;
+    width: 150px;
+    height: 150px;
     border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-    border: 1.5px solid rgba(0, 113, 227, 0.06);
+    border: 1.5px solid rgba(10, 51, 139, 0.08);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
     backdrop-filter: blur(4px);
-    animation: float-slow 22s infinite linear;
+    animation: float-slow 24s infinite linear;
     pointer-events: none;
     z-index: 0;
 }
 
 .timer-decor-2 {
     position: absolute;
-    bottom: -60px;
-    right: -90px;
-    width: 180px;
-    height: 180px;
+    bottom: -70px;
+    right: -100px;
+    width: 190px;
+    height: 190px;
     border-radius: 50%;
-    border: 1.5px solid rgba(0, 113, 227, 0.04);
+    border: 1.5px solid rgba(252, 80, 0, 0.06);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01));
     backdrop-filter: blur(6px);
-    animation: float-slow-reverse 26s infinite linear;
+    animation: float-slow-reverse 28s infinite linear;
     pointer-events: none;
     z-index: 0;
 }

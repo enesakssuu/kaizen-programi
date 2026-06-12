@@ -18,10 +18,16 @@
     --text-secondary: #6e6e73;
     --text-muted: #86868b;
 
-    --primary: #0071e3;
-    --primary-light: #3399ff;
-    --primary-dark: #0055b3;
-    --primary-glow: transparent;
+    --primary: #0a338b; /* Kurumsal Mavi */
+    --primary-light: #1e4eb8;
+    --primary-dark: #072461;
+    --primary-glow: rgba(10, 51, 139, 0.12);
+
+    --accent: #fc5000; /* Kurumsal Turuncu */
+    --accent-light: #ff7333;
+    --accent-dark: #cc4000;
+    --accent-glow: rgba(252, 80, 0, 0.12);
+
 
     --gold: #d97706;
     --gold-light: #f59e0b;
@@ -476,3 +482,14 @@ tr:hover td {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
 }
+
+/* ==================== LOGIN LOGO IMAGE ==================== */
+.login-logo-img {
+    max-width: 100%;
+    height: auto;
+    max-height: 80px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(10, 51, 139, 0.08));
+}
+
