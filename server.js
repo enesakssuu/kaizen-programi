@@ -1,10 +1,12 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, 'data');
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+const DATA_DIR = isProduction ? path.join(os.tmpdir(), 'kaizen-data') : path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 // Ensure data directory exists
