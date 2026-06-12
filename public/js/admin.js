@@ -687,7 +687,8 @@
             if (data.success) {
                 showToast(`#${data.rank} açıklanıyor: ${data.project.projectName}`, 'success');
 
-                const waitTime = ((settings.countdownSeconds || 10) + 6) * 1000;
+                const revealDuration = data.rank === 1 ? (settings.winnerRevealSeconds || 10) : 5;
+                const waitTime = ((settings.countdownSeconds || 10) + revealDuration + 1) * 1000;
                 setTimeout(async () => {
                     revealInProgress = false;
                     await loadPresentationStatus();
@@ -725,6 +726,9 @@
             settings = data.settings;
 
             $countdownInput.value = settings.countdownSeconds || 10;
+            if (document.getElementById('winner-reveal-seconds-input')) {
+                document.getElementById('winner-reveal-seconds-input').value = settings.winnerRevealSeconds || 10;
+            }
 
             // Populate sound settings
             if (settings.sounds) {
@@ -787,19 +791,31 @@
     async function saveCountdown() {
         const seconds = parseInt($countdownInput.value);
         if (isNaN(seconds) || seconds < 3 || seconds > 30) {
-            return showToast('Süre 3-30 saniye arasında olmalıdır', 'error');
+            return showToast('Geri sayım süresi 3-30 saniye arasında olmalıdır', 'error');
+        }
+
+        let winnerSeconds = 10;
+        const $winnerSecInput = document.getElementById('winner-reveal-seconds-input');
+        if ($winnerSecInput) {
+            winnerSeconds = parseInt($winnerSecInput.value);
+            if (isNaN(winnerSeconds) || winnerSeconds < 3 || winnerSeconds > 120) {
+                return showToast('Birincinin kalma süresi 3-120 saniye arasında olmalıdır', 'error');
+            }
         }
 
         try {
             const res = await fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ countdownSeconds: seconds })
+                body: JSON.stringify({ 
+                    countdownSeconds: seconds,
+                    winnerRevealSeconds: winnerSeconds
+                })
             });
 
             const data = await res.json();
             if (data.success) {
-                showToast('Geri sayım süresi güncellendi', 'success');
+                showToast('Süre ayarları güncellendi', 'success');
             }
         } catch (err) {
             showToast('Kaydetme hatası', 'error');
@@ -876,7 +892,15 @@
                     method: 'POST',
                     body: formData
                 });
-                const uploadData = await uploadRes.json();
+                
+                let uploadData;
+                try {
+                    uploadData = await uploadRes.json();
+                } catch (parseErr) {
+                    showToast('Sunucudan geçersiz yanıt alındı. Dosya sistemi salt okunur olabilir (Vercel vb.). Lütfen bunun yerine harici ses URL\'si kullanın.', 'error');
+                    return;
+                }
+
                 if (uploadData.success) {
                     if (uploadData.sounds.countdownUrl) {
                         document.getElementById('sound-countdown-url').value = uploadData.sounds.countdownUrl;
@@ -892,7 +916,7 @@
                     return;
                 }
             } catch (err) {
-                showToast('Dosya yüklenirken bağlantı hatası oluştu.', 'error');
+                showToast('Dosya yüklenirken bağlantı hatası oluştu. Dosya sistemi salt okunur olabilir.', 'error');
                 return;
             }
         }

@@ -8,6 +8,7 @@
     let revealedProjects = [];
     let rankings = [];
     let countdownSeconds = 10;
+    let winnerRevealSeconds = 10;
     let isAnimating = false;
     let countdownInterval = null;
     let revealTimeout = null;
@@ -114,6 +115,7 @@
     function handleStatusUpdate(data) {
         rankings = data.rankings || [];
         countdownSeconds = data.settings?.countdownSeconds || 10;
+        winnerRevealSeconds = data.settings?.winnerRevealSeconds || 10;
         if (data.settings && data.settings.sounds) {
             soundSettings = data.settings.sounds;
         }
@@ -302,8 +304,10 @@
 
         // Confetti for top 3
         if (rank <= 3) {
-            launchConfetti();
+            launchConfetti(rank);
         }
+
+        const revealDuration = rank === 1 ? (winnerRevealSeconds * 1000) : 5000;
 
         // After delay, move to list
         revealTimeout = setTimeout(() => {
@@ -315,7 +319,7 @@
             isAnimating = false;
             updateWaitingVisibility();
             revealTimeout = null;
-        }, 5000);
+        }, revealDuration);
     }
 
     // ==================== RANKINGS LIST ====================
@@ -402,26 +406,77 @@
     }
 
     // ==================== CONFETTI ====================
-    function launchConfetti() {
-        $confettiContainer.classList.remove('hidden');
-        $confettiContainer.innerHTML = '';
+    function launchConfetti(rank) {
+        if (typeof confetti === 'undefined') {
+            console.warn("canvas-confetti is not loaded.");
+            return;
+        }
 
-        const colors = ['#818cf8', '#6366f1', '#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+        // Corporate theme colors: orange (#fc5000), blue (#0a338b), gold (#ffd700), white (#ffffff)
+        const orange = '#fc5000';
+        const blue = '#0a338b';
+        const gold = '#ffd700';
+        const white = '#ffffff';
+        const colors = [orange, blue, gold, '#ff8c00', white];
 
-        for (let i = 0; i < 80; i++) {
-            const confetti = document.createElement('div');
-            confetti.classList.add('confetti');
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.animationDuration = (2 + Math.random() * 3) + 's';
-            confetti.style.animationDelay = Math.random() * 1 + 's';
+        if (rank === 1) {
+            // Massive continuous celebration for 1st place!
+            const duration = (winnerRevealSeconds || 10) * 1000;
+            const end = Date.now() + duration;
 
-            const size = 5 + Math.random() * 6;
-            confetti.style.width = size + 'px';
-            confetti.style.height = size + 'px';
-            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            (function frame() {
+                // Left cannon
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.8 },
+                    colors: colors,
+                    zIndex: 9999
+                });
+                // Right cannon
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.8 },
+                    colors: colors,
+                    zIndex: 9999
+                });
+                // Center splash
+                if (Math.random() < 0.2) {
+                    confetti({
+                        particleCount: 15,
+                        angle: 90,
+                        spread: 100,
+                        origin: { x: 0.5, y: 0.75 },
+                        colors: colors,
+                        zIndex: 9999
+                    });
+                }
 
-            $confettiContainer.appendChild(confetti);
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        } else {
+            // Exploding side cannons for 2nd & 3rd place (Rank 2 and Rank 3)
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { x: 0, y: 0.8 },
+                angle: 60,
+                colors: colors,
+                zIndex: 9999
+            });
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { x: 1, y: 0.8 },
+                angle: 120,
+                colors: colors,
+                zIndex: 9999
+            });
         }
     }
 

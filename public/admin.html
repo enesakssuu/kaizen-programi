@@ -259,12 +259,16 @@
                     </div>
 
                     <div class="settings-grid">
-                        <!-- Countdown Setting -->
+                        <!-- Duration Settings -->
                         <div class="setting-card">
-                            <h3 class="setting-card-title">Geri Sayım Süresi</h3>
+                            <h3 class="setting-card-title">Süre Ayarları</h3>
                             <div class="form-group">
-                                <label class="form-label">Süre (Saniye)</label>
+                                <label class="form-label">Geri Sayım (Saniye)</label>
                                 <input type="number" class="form-input" id="countdown-seconds-input" min="3" max="30" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Birincinin Ekranda Kalma Süresi (Saniye)</label>
+                                <input type="number" class="form-input" id="winner-reveal-seconds-input" min="3" max="120" value="10">
                             </div>
                             <button class="btn btn-primary btn-sm" id="save-countdown-btn">Kaydet</button>
                         </div>

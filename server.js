@@ -82,6 +82,7 @@ function getDefaultData() {
             ],
             adminPassword: "kaizen2026",
             countdownSeconds: 10,
+            winnerRevealSeconds: 10,
             sounds: {
                 countdownEnabled: true,
                 countdownUrl: "",
@@ -371,22 +372,29 @@ app.get('/api/questions', async (req, res) => {
 // ==================== SETTINGS ====================
 app.put('/api/settings', async (req, res) => {
     const data = await readData();
-    const { questions, countdownSeconds, adminPassword } = req.body;
-
+    const { questions, countdownSeconds, adminPassword, sounds, winnerRevealSeconds } = req.body;
+ 
     if (questions && Array.isArray(questions)) {
         if (questions.length > 0 && questions.every(q => q && q.trim().length > 0)) {
             data.settings.questions = questions.map(q => q.trim());
         }
     }
-
+ 
     if (countdownSeconds && countdownSeconds >= 3 && countdownSeconds <= 30) {
         data.settings.countdownSeconds = parseInt(countdownSeconds);
     }
-
+ 
+    if (winnerRevealSeconds !== undefined) {
+        const parsed = parseInt(winnerRevealSeconds);
+        if (!isNaN(parsed) && parsed >= 3 && parsed <= 120) {
+            data.settings.winnerRevealSeconds = parsed;
+        }
+    }
+ 
     if (adminPassword && adminPassword.trim().length > 0) {
         data.settings.adminPassword = adminPassword.trim();
     }
-
+ 
     if (sounds && typeof sounds === 'object') {
         data.settings.sounds = {
             countdownEnabled: typeof sounds.countdownEnabled === 'boolean' ? sounds.countdownEnabled : true,
@@ -401,10 +409,22 @@ app.put('/api/settings', async (req, res) => {
 });
 
 // ==================== SOUNDS UPLOAD ====================
-app.post('/api/settings/sounds/upload', uploadAudio.fields([
-    { name: 'countdown', maxCount: 1 },
-    { name: 'reveal', maxCount: 1 }
-]), async (req, res) => {
+app.post('/api/settings/sounds/upload', (req, res, next) => {
+    uploadAudio.fields([
+        { name: 'countdown', maxCount: 1 },
+        { name: 'reveal', maxCount: 1 }
+    ])(req, res, function (err) {
+        if (err) {
+            console.error("Multer upload error:", err);
+            let msg = err.message;
+            if (err.code === 'EROFS' || err.message.includes('readonly') || err.message.includes('read-only')) {
+                msg = "Sunucu dosya sistemi salt okunur (Vercel vb.). Dosya yüklemek yerine ses dosyasının internet adresini (URL) giriniz.";
+            }
+            return res.status(500).json({ success: false, message: msg });
+        }
+        next();
+    });
+}, async (req, res) => {
     try {
         const data = await readData();
         if (!data.settings.sounds) {
@@ -429,7 +449,11 @@ app.post('/api/settings/sounds/upload', uploadAudio.fields([
         res.json({ success: true, sounds: data.settings.sounds });
     } catch (e) {
         console.error("Sound upload error:", e);
-        res.status(500).json({ success: false, message: e.message });
+        let msg = e.message;
+        if (e.code === 'EROFS' || e.message.includes('readonly') || e.message.includes('read-only')) {
+            msg = "Sunucu dosya sistemi salt okunur (Vercel vb.). Dosya yüklemek yerine ses dosyasının internet adresini (URL) giriniz.";
+        }
+        res.status(500).json({ success: false, message: msg });
     }
 });
 
