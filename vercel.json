@@ -1,27 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/juri",
-      "dest": "public/juri.html"
-    },
-    {
-      "src": "/admin",
-      "dest": "public/admin.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "public/$1"
-    }
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/juri", "destination": "/juri.html" },
+    { "source": "/admin", "destination": "/admin.html" }
   ]
 }
