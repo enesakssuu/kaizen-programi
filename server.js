@@ -417,7 +417,7 @@ app.post('/api/settings/sounds/upload', (req, res, next) => {
         if (err) {
             console.error("Multer upload error:", err);
             let msg = err.message;
-            if (err.code === 'EROFS' || err.message.includes('readonly') || err.message.includes('read-only')) {
+            if (err.code === 'EROFS' || err.code === 'ENOENT' || err.code === 'EACCES' || err.message.includes('readonly') || err.message.includes('read-only') || process.env.VERCEL) {
                 msg = "Sunucu dosya sistemi salt okunur (Vercel vb.). Dosya yüklemek yerine ses dosyasının internet adresini (URL) giriniz.";
             }
             return res.status(500).json({ success: false, message: msg });
@@ -450,7 +450,7 @@ app.post('/api/settings/sounds/upload', (req, res, next) => {
     } catch (e) {
         console.error("Sound upload error:", e);
         let msg = e.message;
-        if (e.code === 'EROFS' || e.message.includes('readonly') || e.message.includes('read-only')) {
+        if (e.code === 'EROFS' || e.code === 'ENOENT' || e.code === 'EACCES' || e.message.includes('readonly') || e.message.includes('read-only') || process.env.VERCEL) {
             msg = "Sunucu dosya sistemi salt okunur (Vercel vb.). Dosya yüklemek yerine ses dosyasının internet adresini (URL) giriniz.";
         }
         res.status(500).json({ success: false, message: msg });
