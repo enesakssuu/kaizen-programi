@@ -23,6 +23,13 @@
         revealUrl: ""
     };
 
+    // ==================== WELCOME PARTICLES STATE ====================
+    let welcomeParticles = [];
+    let welcomeParticlesCanvas = null;
+    let welcomeParticlesCtx = null;
+    let welcomeParticlesAnimFrame = null;
+    const welcomeMouse = { x: null, y: null, active: false };
+
     // ==================== DOM ELEMENTS ====================
     const $particles = document.getElementById('particles');
     const $waitingState = document.getElementById('waiting-state');
@@ -55,6 +62,7 @@
         createParticles();
         startPolling();
         initParallax();
+        initWelcomeParticles();
     }
  
     // ==================== PARALLAX ====================
@@ -99,6 +107,202 @@
             p.style.height = size + 'px';
             $particles.appendChild(p);
         }
+    }
+
+    // ==================== WELCOME CANVAS PARTICLES ====================
+    function initWelcomeParticles() {
+        welcomeParticlesCanvas = document.getElementById('welcome-particles-canvas');
+        if (!welcomeParticlesCanvas) return;
+        welcomeParticlesCtx = welcomeParticlesCanvas.getContext('2d');
+
+        // Resize handler
+        window.addEventListener('resize', resizeWelcomeParticles);
+        resizeWelcomeParticles();
+
+        // Mouse listeners (Canvas uses screen coordinates since it's position: fixed)
+        document.addEventListener('mousemove', (e) => {
+            if (presentationMode !== 'welcome') {
+                welcomeMouse.active = false;
+                return;
+            }
+            welcomeMouse.x = e.clientX;
+            welcomeMouse.y = e.clientY;
+            welcomeMouse.active = true;
+        });
+
+        document.addEventListener('mouseleave', () => {
+            welcomeMouse.active = false;
+        });
+
+        // Initialize particles
+        generateWelcomeParticles();
+    }
+
+    function generateWelcomeParticles() {
+        if (!welcomeParticlesCanvas) return;
+        welcomeParticles = [];
+        const w = welcomeParticlesCanvas.width || window.innerWidth;
+        const h = welcomeParticlesCanvas.height || window.innerHeight;
+
+        const baseColors = [
+            'rgba(10, 51, 139, ',   // Blue
+            'rgba(252, 80, 0, ',    // Orange
+            'rgba(138, 43, 226, ',  // Purple
+            'rgba(245, 158, 11, ',  // Gold/Yellow
+            'rgba(236, 72, 153, '   // Pink
+        ];
+
+        for (let i = 0; i < 80; i++) {
+            welcomeParticles.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                baseVx: (Math.random() - 0.5) * 0.4,
+                baseVy: (Math.random() - 0.5) * 0.4,
+                length: 6 + Math.random() * 8, // Length of dash
+                width: 1.5 + Math.random() * 1.5, // Thickness of dash
+                color: baseColors[Math.floor(Math.random() * baseColors.length)],
+                alpha: 0.3 + Math.random() * 0.4, // Opacity
+                angle: Math.random() * Math.PI * 2,
+                spin: (Math.random() - 0.5) * 0.01
+            });
+        }
+    }
+
+    function resizeWelcomeParticles() {
+        if (!welcomeParticlesCanvas) return;
+        welcomeParticlesCanvas.width = window.innerWidth;
+        welcomeParticlesCanvas.height = window.innerHeight;
+        // Re-generate to fit new screen bounds cleanly
+        generateWelcomeParticles();
+    }
+
+    function startWelcomeParticles() {
+        if (!welcomeParticlesCanvas) return;
+        if (!welcomeParticlesAnimFrame) {
+            // Ensure bounds are fresh
+            resizeWelcomeParticles();
+            animateWelcomeParticles();
+        }
+    }
+
+    function stopWelcomeParticles() {
+        if (welcomeParticlesAnimFrame) {
+            cancelAnimationFrame(welcomeParticlesAnimFrame);
+            welcomeParticlesAnimFrame = null;
+        }
+        if (welcomeParticlesCtx && welcomeParticlesCanvas) {
+            welcomeParticlesCtx.clearRect(0, 0, welcomeParticlesCanvas.width, welcomeParticlesCanvas.height);
+        }
+    }
+
+    function animateWelcomeParticles() {
+        if (presentationMode !== 'welcome' || isAnimating) {
+            stopWelcomeParticles();
+            return;
+        }
+
+        const ctx = welcomeParticlesCtx;
+        const w = welcomeParticlesCanvas.width;
+        const h = welcomeParticlesCanvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Update and draw particles
+        welcomeParticles.forEach(p => {
+            // Mouse interaction (gravity attraction)
+            if (welcomeMouse.active && welcomeMouse.x !== null && welcomeMouse.y !== null) {
+                const dx = welcomeMouse.x - p.x;
+                const dy = welcomeMouse.y - p.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < 250) {
+                    // Force pulls particles gently towards the mouse
+                    const force = (250 - dist) / 250;
+                    p.vx += (dx / dist) * force * 0.08;
+                    p.vy += (dy / dist) * force * 0.08;
+                }
+            }
+
+            // Apply friction/damping to prevent acceleration build-up
+            p.vx *= 0.96;
+            p.vy *= 0.96;
+
+            // Add back subtle baseline movement/noise
+            p.vx += p.baseVx * 0.05;
+            p.vy += p.baseVy * 0.05;
+
+            // Move particle
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Rotate dash slightly based on speed
+            p.angle += p.spin + (Math.hypot(p.vx, p.vy) * 0.01);
+
+            // Wrap or bounce on boundaries
+            if (p.x < -20) p.x = w + 20;
+            if (p.x > w + 20) p.x = -20;
+            if (p.y < -20) p.y = h + 20;
+            if (p.y > h + 20) p.y = -20;
+
+            // Draw connection lines to other particles (Constellation style)
+            welcomeParticles.forEach(p2 => {
+                if (p === p2) return;
+                const dx = p2.x - p.x;
+                const dy = p2.y - p.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < 100) {
+                    const lineAlpha = (100 - dist) / 100 * 0.12;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = `rgba(10, 51, 139, ${lineAlpha})`; // Soft blue connection
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            });
+
+            // Draw line to mouse if close (dynamic tracking)
+            if (welcomeMouse.active && welcomeMouse.x !== null && welcomeMouse.y !== null) {
+                const dx = welcomeMouse.x - p.x;
+                const dy = welcomeMouse.y - p.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < 150) {
+                    const mouseAlpha = (150 - dist) / 150 * 0.22;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(welcomeMouse.x, welcomeMouse.y);
+                    ctx.strokeStyle = `rgba(252, 80, 0, ${mouseAlpha})`; // Warm orange mouse connection
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+
+            // Draw the particle itself as an elegant dash/stroke aligned with its velocity
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            
+            // Align rotation with velocity if moving, else fallback to spin angle
+            const speed = Math.hypot(p.vx, p.vy);
+            const angle = speed > 0.1 ? Math.atan2(p.vy, p.vx) : p.angle;
+            ctx.rotate(angle);
+
+            ctx.beginPath();
+            ctx.moveTo(-p.length / 2, 0);
+            ctx.lineTo(p.length / 2, 0);
+            
+            // Combine color base with dynamic alpha
+            ctx.strokeStyle = p.color + p.alpha + ')';
+            ctx.lineWidth = p.width;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        welcomeParticlesAnimFrame = requestAnimationFrame(animateWelcomeParticles);
     }
 
     // ==================== POLLING ====================
@@ -395,6 +599,7 @@
             if ($welcomeState) $welcomeState.classList.add('hidden');
             $rankingsSection.classList.remove('hidden');
             $viewerStage.classList.remove('timer-only');
+            stopWelcomeParticles();
             return;
         }
 
@@ -404,18 +609,21 @@
             if ($welcomeState) $welcomeState.classList.add('hidden');
             $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
+            stopWelcomeParticles();
         } else if (presentationMode === 'welcome') {
             if ($welcomeState) $welcomeState.classList.remove('hidden');
             $timerState.classList.add('hidden');
             $waitingState.classList.add('hidden');
             $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
+            startWelcomeParticles();
         } else {
             $waitingState.classList.remove('hidden');
             $timerState.classList.add('hidden');
             if ($welcomeState) $welcomeState.classList.add('hidden');
             $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
+            stopWelcomeParticles();
         }
     }
 

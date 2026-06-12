@@ -818,6 +818,15 @@
     position: relative;
 }
 
+#welcome-particles-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: -1;
+}
+
 /* 3D Parallax Ambient Glows */
 .welcome-bg-glow {
     position: absolute;
