@@ -80,9 +80,11 @@
 }
 
 .header-logo-right {
-    height: 46px;
+    height: 56px;
     width: auto;
     object-fit: contain;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.15));
 }
 
 .header-divider {
@@ -158,6 +160,7 @@
 }
 
 .waiting-logo-img {
+    mix-blend-mode: screen;
     width: 100%;
     height: auto;
     object-fit: contain;
@@ -636,6 +639,7 @@
     width: 100%;
     height: auto;
     object-fit: contain;
+    mix-blend-mode: screen;
 }
 
 .timer-grid {
