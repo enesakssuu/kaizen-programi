@@ -8,8 +8,12 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 // Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+    if (!process.env.FIREBASE_URL && !fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+} catch (e) {
+    console.warn("Data directory warning (normal in serverless):", e.message);
 }
 
 // Middleware
