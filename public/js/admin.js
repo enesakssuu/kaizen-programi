@@ -14,6 +14,9 @@
     let settings = {};
     let revealInProgress = false;
     let currentQuestions = [];
+    let serverTimeOffset = 0;
+    let adminTimerInterval = null;
+    let adminTimerState = null;
 
     // ==================== DOM ELEMENTS ====================
     const $loginSection = document.getElementById('admin-login');
@@ -53,9 +56,7 @@
     const $resetPresentationBtn = document.getElementById('reset-presentation-btn');
     const $modeTimerBtn = document.getElementById('mode-timer-btn');
     const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
-    const $timerDaysInput = document.getElementById('timer-days-input');
-    const $timerHoursInput = document.getElementById('timer-hours-input');
-    const $timerMinutesInput = document.getElementById('timer-minutes-input');
+    const $timerTargetInput = document.getElementById('timer-target-input');
     const $timerSetBtn = document.getElementById('timer-set-btn');
     const $adminTimerDisplay = document.getElementById('admin-timer-display');
     const $timerStartBtn = document.getElementById('timer-start-btn');
@@ -447,8 +448,15 @@
     // ==================== PRESENTATION ====================
     async function loadPresentationStatus() {
         try {
+            const startTime = Date.now();
             const res = await fetch('/api/presentation/status');
             const data = await res.json();
+            const endTime = Date.now();
+            const rtt = endTime - startTime;
+            if (typeof data.serverTime === 'number') {
+                serverTimeOffset = (data.serverTime + rtt / 2) - endTime;
+            }
+
             presentationStatus = data.presentation;
             rankings = data.rankings;
             settings = data.settings;
@@ -456,18 +464,31 @@
             if (presentationStatus) {
                 syncAdminTimer(presentationStatus.timer);
                 syncModeButtons(presentationStatus.mode);
+
+                // Pre-populate datetime-local input
+                const timer = presentationStatus.timer;
+                const nowWithOffset = Date.now() + serverTimeOffset;
+                if (timer && timer.targetTimestamp && timer.targetTimestamp > nowWithOffset) {
+                    const targetDate = new Date(timer.targetTimestamp);
+                    const tzOffset = targetDate.getTimezoneOffset() * 60000;
+                    const localISOTime = (new Date(targetDate.getTime() - tzOffset)).toISOString().slice(0, 16);
+                    $timerTargetInput.value = localISOTime;
+                } else {
+                    // Default to now + 10 minutes
+                    const defaultDate = new Date(nowWithOffset + 10 * 60 * 1000);
+                    const tzOffset = defaultDate.getTimezoneOffset() * 60000;
+                    const localISOTime = (new Date(defaultDate.getTime() - tzOffset)).toISOString().slice(0, 16);
+                    $timerTargetInput.value = localISOTime;
+                }
             }
         } catch (err) {
             showToast('Sunum durumu yüklenemedi', 'error');
         }
     }
 
-    let adminTimerInterval = null;
-    let adminTimerState = null;
-
     function syncAdminTimer(timer) {
         if (!timer) return;
-        const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}`;
+        const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}_${timer.targetTimestamp}`;
         if (adminTimerState === stateKey) {
             return;
         }
@@ -480,7 +501,10 @@
 
         function tick() {
             let remaining = timer.remaining;
-            if (timer.isRunning) {
+            if (timer.isRunning && timer.targetTimestamp) {
+                const now = Date.now() + serverTimeOffset;
+                remaining = Math.max(0, Math.floor((timer.targetTimestamp - now) / 1000));
+            } else if (timer.isRunning) {
                 const elapsed = Math.floor((Date.now() - timer.lastUpdated) / 1000);
                 remaining = Math.max(0, timer.remaining - elapsed);
             }
@@ -491,14 +515,16 @@
             const seconds = remaining % 60;
 
             let displayStr = '';
-            if (days > 0) displayStr += `${days}g `;
-            if (hours > 0 || days > 0) displayStr += `${hours}s `;
-            displayStr += `${String(minutes).padStart(2, '0')}d ${String(seconds).padStart(2, '0')}sn`;
+            if (days > 0) displayStr += `${days} gün `;
+            if (hours > 0 || days > 0) displayStr += `${hours} sa `;
+            displayStr += `${String(minutes).padStart(2, '0')} dk ${String(seconds).padStart(2, '0')} sn`;
             $adminTimerDisplay.textContent = displayStr;
         }
 
         tick();
-        if (timer.isRunning && timer.remaining > 0) {
+        const initialNow = Date.now() + serverTimeOffset;
+        const targetExpired = timer.targetTimestamp ? (timer.targetTimestamp <= initialNow) : (timer.remaining <= 0);
+        if (timer.isRunning && !targetExpired) {
             adminTimerInterval = setInterval(tick, 1000);
         }
     }
@@ -532,27 +558,34 @@
     }
 
     async function setTimerDuration() {
-        const days = parseInt($timerDaysInput.value) || 0;
-        const hours = parseInt($timerHoursInput.value) || 0;
-        const minutes = parseInt($timerMinutesInput.value) || 0;
-
-        if (days < 0 || hours < 0 || minutes < 0 || (days === 0 && hours === 0 && minutes === 0)) {
-            showToast('Lütfen geçerli bir süre girin.', 'error');
+        const targetVal = $timerTargetInput.value;
+        if (!targetVal) {
+            showToast('Lütfen hedef tarih ve saati seçin.', 'error');
             return;
         }
 
-        const duration = (days * 24 * 3600) + (hours * 3600) + (minutes * 60);
+        const targetDate = new Date(targetVal);
+        const targetTimestamp = targetDate.getTime();
+        const now = Date.now();
+
+        if (isNaN(targetTimestamp) || targetTimestamp <= now) {
+            showToast('Lütfen gelecekteki bir tarih ve saat seçin.', 'error');
+            return;
+        }
+
         try {
             const res = await fetch('/api/presentation/timer/set', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ duration })
+                body: JSON.stringify({ targetTimestamp })
             });
             const data = await res.json();
             if (data.success) {
                 presentationStatus.timer = data.timer;
                 syncAdminTimer(data.timer);
                 showToast('Sayaç süresi ayarlandı.', 'success');
+            } else {
+                showToast(data.message || 'Sayaç ayarlanamadı', 'error');
             }
         } catch (err) {
             showToast('Sayaç ayarlanamadı', 'error');

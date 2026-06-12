@@ -14,6 +14,7 @@
     let presentationMode = 'timer'; // 'timer' or 'waiting'
     let timerState = null;
     let localTimerInterval = null;
+    let serverTimeOffset = 0;
 
     // ==================== DOM ELEMENTS ====================
     const $particles = document.getElementById('particles');
@@ -69,8 +70,14 @@
 
     async function pollStatus() {
         try {
+            const startTime = Date.now();
             const res = await fetch('/api/presentation/status');
             const data = await res.json();
+            const endTime = Date.now();
+            const rtt = endTime - startTime;
+            if (typeof data.serverTime === 'number') {
+                serverTimeOffset = (data.serverTime + rtt / 2) - endTime;
+            }
             handleStatusUpdate(data);
         } catch (err) {
             console.error('Polling error:', err);
@@ -133,7 +140,7 @@
     }
 
     function syncTimer(timer) {
-        const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}`;
+        const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}_${timer.targetTimestamp}`;
         if (timerState === stateKey) {
             return;
         }
@@ -146,7 +153,10 @@
 
         function tick() {
             let remaining = timer.remaining;
-            if (timer.isRunning) {
+            if (timer.isRunning && timer.targetTimestamp) {
+                const now = Date.now() + serverTimeOffset;
+                remaining = Math.max(0, Math.floor((timer.targetTimestamp - now) / 1000));
+            } else if (timer.isRunning) {
                 const elapsed = Math.floor((Date.now() - timer.lastUpdated) / 1000);
                 remaining = Math.max(0, timer.remaining - elapsed);
             }
@@ -163,7 +173,9 @@
         }
 
         tick();
-        if (timer.isRunning && timer.remaining > 0) {
+        const initialNow = Date.now() + serverTimeOffset;
+        const targetExpired = timer.targetTimestamp ? (timer.targetTimestamp <= initialNow) : (timer.remaining <= 0);
+        if (timer.isRunning && !targetExpired) {
             localTimerInterval = setInterval(tick, 1000);
         }
     }

@@ -37,7 +37,8 @@ function getDefaultData() {
                 duration: 600, // 10 minutes default
                 remaining: 600,
                 isRunning: false,
-                lastUpdated: Date.now()
+                lastUpdated: Date.now(),
+                targetTimestamp: Date.now() + 600000
             }
         },
         settings: {
@@ -75,7 +76,8 @@ function ensureDefaults(data) {
                 duration: typeof timer.duration === 'number' ? timer.duration : defaults.presentation.timer.duration,
                 remaining: typeof timer.remaining === 'number' ? timer.remaining : defaults.presentation.timer.remaining,
                 isRunning: typeof timer.isRunning === 'boolean' ? timer.isRunning : defaults.presentation.timer.isRunning,
-                lastUpdated: typeof timer.lastUpdated === 'number' ? timer.lastUpdated : defaults.presentation.timer.lastUpdated
+                lastUpdated: typeof timer.lastUpdated === 'number' ? timer.lastUpdated : defaults.presentation.timer.lastUpdated,
+                targetTimestamp: typeof timer.targetTimestamp === 'number' ? timer.targetTimestamp : (defaults.presentation.timer.targetTimestamp || Date.now() + 600000)
             }
         },
         settings: { ...defaults.settings, ...(data.settings || {}) }
@@ -396,7 +398,8 @@ app.get('/api/presentation/status', async (req, res) => {
     res.json({
         presentation: data.presentation,
         rankings: rankings,
-        settings: { countdownSeconds: data.settings.countdownSeconds }
+        settings: { countdownSeconds: data.settings.countdownSeconds },
+        serverTime: Date.now()
     });
 });
 
@@ -463,17 +466,18 @@ app.post('/api/presentation/timer/control', async (req, res) => {
     const now = Date.now();
 
     if (action === 'start') {
+        timer.targetTimestamp = now + (timer.remaining * 1000);
         timer.isRunning = true;
         timer.lastUpdated = now;
     } else if (action === 'pause') {
         if (timer.isRunning) {
-            const elapsed = Math.floor((now - timer.lastUpdated) / 1000);
-            timer.remaining = Math.max(0, timer.remaining - elapsed);
+            timer.remaining = Math.max(0, Math.floor((timer.targetTimestamp - now) / 1000));
         }
         timer.isRunning = false;
         timer.lastUpdated = now;
     } else if (action === 'reset') {
         timer.remaining = timer.duration;
+        timer.targetTimestamp = now + (timer.duration * 1000);
         timer.isRunning = false;
         timer.lastUpdated = now;
     } else {
@@ -485,18 +489,37 @@ app.post('/api/presentation/timer/control', async (req, res) => {
 });
 
 app.post('/api/presentation/timer/set', async (req, res) => {
-    const { duration } = req.body; // duration in seconds
-    if (typeof duration !== 'number' || duration <= 0) {
-        return res.status(400).json({ message: 'Geçersiz süre' });
-    }
+    const { duration, targetTimestamp } = req.body;
     const data = await readData();
     const now = Date.now();
-    data.presentation.timer = {
-        duration: duration,
-        remaining: duration,
-        isRunning: false,
-        lastUpdated: now
-    };
+
+    if (targetTimestamp !== undefined) {
+        if (typeof targetTimestamp !== 'number' || targetTimestamp <= now) {
+            return res.status(400).json({ message: 'Lütfen gelecekteki bir tarih seçin' });
+        }
+        const calcDuration = Math.floor((targetTimestamp - now) / 1000);
+        data.presentation.timer = {
+            duration: calcDuration,
+            remaining: calcDuration,
+            isRunning: true,
+            lastUpdated: now,
+            targetTimestamp: targetTimestamp
+        };
+    } else if (duration !== undefined) {
+        if (typeof duration !== 'number' || duration <= 0) {
+            return res.status(400).json({ message: 'Geçersiz süre' });
+        }
+        data.presentation.timer = {
+            duration: duration,
+            remaining: duration,
+            isRunning: false,
+            lastUpdated: now,
+            targetTimestamp: now + (duration * 1000)
+        };
+    } else {
+        return res.status(400).json({ message: 'Geçersiz parametreler' });
+    }
+
     await writeData(data);
     res.json({ success: true, timer: data.presentation.timer });
 });
