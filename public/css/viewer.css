@@ -69,14 +69,12 @@
     height: 38px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
 }
 
 .header-logo-right {
     height: 42px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(10, 51, 139, 0.08));
 }
 
 .header-divider {
@@ -155,7 +153,6 @@
     width: 100%;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 8px 16px rgba(10, 51, 139, 0.08));
 }
 
 .waiting-visual {
@@ -631,7 +628,6 @@
     width: 100%;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 8px 16px rgba(10, 51, 139, 0.08));
 }
 
 .timer-grid {
@@ -817,18 +813,17 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     z-index: 1;
 }
 
 .welcome-logo-container {
     width: 100%;
-    max-width: 180px;
+    max-width: 200px;
     margin-bottom: 2.5rem;
     display: flex;
     justify-content: center;
     align-items: center;
-    opacity: 0.85;
 }
 
 .welcome-logo-img {
@@ -837,34 +832,36 @@
     object-fit: contain;
 }
 
-.welcome-title {
-    font-family: var(--font-sans);
-    font-size: 3.5rem;
-    font-weight: 500;
-    color: #48484a;
-    letter-spacing: -0.02em;
-    margin: 0 0 0.5rem 0;
-    line-height: 1.1;
-}
-
-.welcome-subtitle-text {
-    font-family: var(--font-sans);
-    font-size: 5.5rem;
-    font-weight: 300;
-    color: #1c1c1e;
-    letter-spacing: -0.03em;
+.welcome-heading {
+    font-family: 'Outfit', var(--font-sans);
+    font-size: clamp(2rem, 3.2vw, 3.6rem);
     margin: 0;
-    line-height: 1.1;
+    line-height: 1.2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-    .welcome-title {
-        font-size: 2.2rem;
-    }
-    .welcome-subtitle-text {
-        font-size: 3.5rem;
-    }
-    .welcome-logo-container {
-        max-width: 130px;
+.welcome-bold {
+    font-weight: 800;
+    color: #0a338b; /* Corporate Blue */
+    letter-spacing: -0.02em;
+}
+
+.welcome-thin {
+    font-weight: 300;
+    color: #2d3748; /* Minimalist dark grey */
+    letter-spacing: -0.01em;
+}
+
+@media (max-width: 992px) {
+    .welcome-heading {
+        white-space: normal;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-size: 2.5rem;
     }
 }
