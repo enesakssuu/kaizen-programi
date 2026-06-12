@@ -46,6 +46,26 @@
     function init() {
         createParticles();
         startPolling();
+        initParallax();
+    }
+ 
+    // ==================== PARALLAX ====================
+    function initParallax() {
+        const $grid = document.querySelector('.grid-overlay');
+        
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2);
+            const moveY = (e.clientY - window.innerHeight / 2);
+            
+            if ($grid) {
+                // Background shifts with mouse
+                $grid.style.transform = `translate(${moveX * 0.012}px, ${moveY * 0.012}px)`;
+            }
+            if ($viewerStage) {
+                // Foreground shifts in opposite direction to create depth
+                $viewerStage.style.transform = `translate(${moveX * -0.008}px, ${moveY * -0.008}px)`;
+            }
+        });
     }
 
     // ==================== PARTICLES ====================
