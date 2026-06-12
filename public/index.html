@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kaizen Yarışması - En İyi Projelerin Açıklanması">
+    <title>Kaizen Yarışması 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/viewer.css">
+</head>
+<body>
+    <div class="viewer-container">
+        <!-- Ambient particles -->
+        <div class="particles" id="particles"></div>
+        <div class="grid-overlay"></div>
+
+        <!-- Header -->
+        <header class="viewer-header">
+            <h1 class="viewer-title">Kaizen Yarışması 2026</h1>
+            <p class="viewer-subtitle">Dereceye Giren Projeler</p>
+        </header>
+
+        <!-- Main Stage -->
+        <main class="viewer-stage" id="viewer-stage">
+            <!-- Waiting State -->
+            <div class="waiting-state" id="waiting-state">
+                <div class="waiting-visual">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="pulse-core"></div>
+                </div>
+                <p class="waiting-text">Sonuçların açıklanması bekleniyor</p>
+                <p class="waiting-subtext">Jüri değerlendirmeleri tamamlandığında sıralamalar burada açıklanacaktır.</p>
+            </div>
+        </main>
+
+        <!-- Countdown Overlay (hidden by default) -->
+        <div class="countdown-overlay hidden" id="countdown-overlay">
+            <p class="countdown-rank-label">
+                Açıklanacak Sıra: <span id="countdown-rank-text">#10</span>
+            </p>
+            <div class="countdown-circle">
+                <svg class="countdown-ring" width="280" height="280" viewBox="0 0 280 280">
+                    <circle class="ring-bg" cx="140" cy="140" r="120"/>
+                    <circle class="ring-progress" cx="140" cy="140" r="120" id="ring-progress"/>
+                </svg>
+                <span class="countdown-number" id="countdown-number">10</span>
+            </div>
+            <p class="countdown-subtext">Sonuç hazırlanıyor</p>
+        </div>
+
+        <!-- Reveal Overlay (hidden by default) -->
+        <div class="reveal-overlay hidden" id="reveal-overlay">
+            <div class="reveal-card">
+                <div class="reveal-rank-badge rank-default" id="reveal-rank-badge">
+                    <span id="reveal-rank-num">#1</span>
+                </div>
+                <h2 class="reveal-project-name" id="reveal-project-name">Proje Adı</h2>
+                <p class="reveal-project-team" id="reveal-project-team">Ekip Adı</p>
+                <div class="reveal-score-display">
+                    <span class="reveal-score-value" id="reveal-score-value">0</span>
+                    <span class="reveal-score-max">/60</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confetti container -->
+        <div class="confetti-container hidden" id="confetti-container"></div>
+
+        <!-- Rankings Section -->
+        <section class="rankings-section" id="rankings-section">
+            <h2 class="rankings-title" id="rankings-title"></h2>
+            <div class="rankings-list" id="rankings-list"></div>
+        </section>
+    </div>
+
+    <script src="/js/viewer.js"></script>
+</body>
+</html>

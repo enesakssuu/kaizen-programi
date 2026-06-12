@@ -1,0 +1,558 @@
+/* ==================== ADMIN PAGE ==================== */
+
+.admin-container {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+/* ==================== ADMIN LOGIN ==================== */
+.admin-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg-primary);
+}
+
+.admin-login-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.admin-login-card .login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.admin-login-card .login-logo h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.admin-login-card .login-logo p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+}
+
+.admin-login-card .login-error {
+    color: var(--error);
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+/* ==================== ADMIN HEADER ==================== */
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(8px);
+}
+
+.admin-header h1 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.admin-header h1 span {
+    color: var(--primary);
+}
+
+/* ==================== TAB NAVIGATION ==================== */
+.admin-tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    overflow-x: auto;
+    position: sticky;
+    top: 54px;
+    z-index: 49;
+}
+
+.admin-tab {
+    padding: 0.9rem 1.5rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transition: transform var(--transition-base);
+}
+
+.admin-tab:hover {
+    color: var(--text-secondary);
+}
+
+.admin-tab.active {
+    color: var(--text-primary);
+}
+
+.admin-tab.active::after {
+    transform: scaleX(1);
+}
+
+.tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: var(--radius-full);
+    background: #e5e5ea;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.admin-tab.active .tab-badge {
+    background: var(--primary);
+    color: white;
+}
+
+/* ==================== ADMIN BODY ==================== */
+.admin-body {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-section {
+    display: none;
+    animation: fade-in 0.2s ease;
+}
+
+.admin-section.active {
+    display: block;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.15rem;
+}
+
+/* ==================== ADD FORMS ==================== */
+.add-form {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.add-form .form-group {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 200px;
+}
+
+.add-form .btn {
+    height: 38px;
+}
+
+/* ==================== ITEM LIST ==================== */
+.item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.item-row:hover {
+    border-color: #a1a1a6;
+    background: var(--surface-hover);
+}
+
+.item-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: #e5e5ea;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.item-detail {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.1rem;
+}
+
+.item-pin {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    background: rgba(0, 113, 227, 0.08);
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.05em;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+/* ==================== RANKINGS TABLE ==================== */
+.rankings-table {
+    width: 100%;
+}
+
+.rankings-table th:first-child,
+.rankings-table td:first-child {
+    width: 50px;
+    text-align: center;
+}
+
+.rank-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.rank-cell.rank-1 {
+    background: #f59e0b;
+    color: #fff;
+}
+
+.rank-cell.rank-2 {
+    background: #94a3b8;
+    color: #fff;
+}
+
+.rank-cell.rank-3 {
+    background: #ea580c;
+    color: #fff;
+}
+
+.score-bar-mini {
+    width: 100%;
+    max-width: 100px;
+    height: 5px;
+    background: #e5e5ea;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+}
+
+.score-bar-mini-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    transition: width 0.5s ease;
+}
+
+/* ==================== PRESENTATION CONTROL ==================== */
+.presentation-control {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.control-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.control-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.reveal-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+}
+
+.reveal-status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    transition: all var(--transition-fast);
+}
+
+.reveal-status-item.revealed {
+    background: rgba(52, 199, 89, 0.08);
+    color: #1d9d37;
+}
+
+.reveal-status-item.pending {
+    background: rgba(142, 142, 147, 0.08);
+    color: var(--text-secondary);
+}
+
+.reveal-status-item.next {
+    background: rgba(0, 113, 227, 0.08);
+    color: var(--primary);
+    border: 1px solid rgba(0, 113, 227, 0.15);
+}
+
+.reveal-status-icon {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-revealed {
+    background-color: var(--success);
+}
+
+.status-next {
+    background-color: var(--primary);
+}
+
+.status-pending {
+    background-color: var(--text-muted);
+}
+
+.reveal-btn-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.reveal-btn-main {
+    padding: 0.85rem 1.8rem;
+    font-size: 1rem;
+}
+
+.reveal-countdown-info {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* Settings section */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.setting-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.setting-card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.question-item {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.question-item .form-input {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.75rem;
+}
+
+.question-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 34px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+/* ==================== SCORE MATRIX ==================== */
+.matrix-container {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.matrix-container table {
+    min-width: 600px;
+}
+
+.matrix-container th,
+.matrix-container td {
+    text-align: center;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+}
+
+.matrix-container th {
+    font-size: 0.7rem;
+    max-width: 100px;
+    white-space: normal;
+}
+
+.matrix-score {
+    font-weight: 700;
+    font-family: var(--font-display);
+}
+
+.matrix-score.scored {
+    color: var(--success);
+}
+
+.matrix-score.not-scored {
+    color: var(--text-secondary);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 0.8rem 1rem;
+    }
+
+    .admin-tabs {
+        padding: 0 1rem;
+    }
+
+    .admin-tab {
+        padding: 0.8rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .admin-body {
+        padding: 1rem;
+    }
+
+    .add-form {
+        flex-direction: column;
+    }
+
+    .add-form .form-group {
+        min-width: 100%;
+    }
+
+    .presentation-control {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,8 @@
+node_modules/
+.tempmediaStorage/
+browser/
+*.webp
+*.png
+data/data.json
+.system_generated/
+.gemini/

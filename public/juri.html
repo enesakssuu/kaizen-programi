@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kaizen Yarışması - Jüri Puanlama Paneli">
+    <title>Kaizen Yarışması - Jüri Paneli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/juri.css">
+</head>
+<body>
+    <div class="juri-container">
+        <!-- Toast Container -->
+        <div class="toast-container" id="toast-container"></div>
+
+        <!-- ==================== LOGIN SCREEN ==================== -->
+        <div class="login-screen" id="login-screen">
+            <div class="login-card card">
+                <div class="login-logo">
+                    <h1 class="logo-title">KAİZEN 2026</h1>
+                    <p class="logo-subtitle">Jüri Değerlendirme Paneli</p>
+                </div>
+                <form class="login-form" id="login-form">
+                    <div class="form-group">
+                        <label class="form-label" for="login-name">Adınız Soyadınız</label>
+                        <input type="text" class="form-input" id="login-name" placeholder="Örn: Ahmet Yılmaz" required autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="login-pin">PIN Kodu</label>
+                        <input type="password" class="form-input" id="login-pin" placeholder="4 haneli PIN" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required autocomplete="off">
+                    </div>
+                    <div class="login-error" id="login-error">
+                        <span id="login-error-text">Geçersiz ad veya PIN kodu</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary login-submit">
+                        Giriş Yap
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==================== DASHBOARD ==================== -->
+        <div class="dashboard hidden" id="dashboard">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="dashboard-header-left">
+                    <h1>Hoş geldiniz, <span id="juror-name-display"></span></h1>
+                    <div class="juror-badge">
+                        <span>Jüri Üyesi</span>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" id="logout-btn">
+                    Çıkış Yap
+                </button>
+            </header>
+
+            <!-- Body -->
+            <div class="dashboard-body">
+                <!-- Progress -->
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <span class="progress-label">Puanlama İlerlemeniz</span>
+                        <span class="progress-count">
+                            <span id="scored-count">0</span> / <span id="total-count">0</span> proje puanlandı
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Projects Grid -->
+                <div class="projects-grid" id="projects-grid">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <!-- Empty state -->
+                <div class="empty-state hidden" id="empty-state">
+                    <p class="empty-state-text">Henüz puanlanacak proje eklenmemiş.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCORING MODAL ==================== -->
+        <div class="modal-overlay scoring-modal" id="scoring-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Proje Puanlama</h3>
+                    <button class="modal-close" id="scoring-close">&times;</button>
+                </div>
+
+                <div class="scoring-project-info">
+                    <h2 id="scoring-project-name">Proje Adı</h2>
+                    <p id="scoring-project-team">Ekip Adı</p>
+                </div>
+
+                <form id="scoring-form">
+                    <div class="scoring-questions" id="scoring-questions">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <div class="scoring-total">
+                        <span class="scoring-total-label">Toplam Puan</span>
+                        <span>
+                            <span class="scoring-total-value" id="scoring-total">30</span>
+                            <span class="scoring-total-max"> / 60</span>
+                        </span>
+                    </div>
+
+                    <div class="scoring-actions">
+                        <button type="button" class="btn btn-ghost" id="scoring-cancel">İptal</button>
+                        <button type="submit" class="btn btn-success">
+                            Puanları Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/juri.js"></script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kaizen Yarışması - Admin Yönetim Paneli">
+    <title>Kaizen Yarışması - Admin Paneli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Toast Container -->
+        <div class="toast-container" id="toast-container"></div>
+
+        <!-- ==================== ADMIN LOGIN ==================== -->
+        <div class="admin-login" id="admin-login">
+            <div class="admin-login-card card">
+                <div class="login-logo">
+                    <h1>Admin Girişi</h1>
+                    <p>Kaizen Yarışması 2026</p>
+                </div>
+                <form id="admin-login-form">
+                    <div class="form-group">
+                        <label class="form-label" for="admin-password">Şifre</label>
+                        <input type="password" class="form-input" id="admin-password" placeholder="Admin şifresi" required autocomplete="off">
+                    </div>
+                    <div class="login-error" id="admin-login-error">
+                        <span>Geçersiz şifre</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary login-submit w-full">Giriş Yap</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==================== ADMIN DASHBOARD ==================== -->
+        <div class="hidden" id="admin-dashboard">
+            <!-- Header -->
+            <header class="admin-header">
+                <h1><span>Kaizen</span> Yönetim Paneli</h1>
+                <button class="btn btn-ghost btn-sm" id="admin-logout-btn">Çıkış Yap</button>
+            </header>
+
+            <!-- Tabs -->
+            <nav class="admin-tabs" id="admin-tabs">
+                <button class="admin-tab active" data-tab="projects">
+                    Projeler <span class="tab-badge" id="projects-count">0</span>
+                </button>
+                <button class="admin-tab" data-tab="jurors">
+                    Jüri Üyeleri <span class="tab-badge" id="jurors-count">0</span>
+                </button>
+                <button class="admin-tab" data-tab="scores">
+                    Puanlar & Sıralama
+                </button>
+                <button class="admin-tab" data-tab="presentation">
+                    Sunum Kontrolü
+                </button>
+                <button class="admin-tab" data-tab="settings">
+                    Ayarlar
+                </button>
+            </nav>
+
+            <!-- Body -->
+            <div class="admin-body">
+
+                <!-- ========== PROJECTS TAB ========== -->
+                <div class="admin-section active" id="section-projects">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Projeler</h2>
+                            <p class="section-subtitle">Yarışmaya katılan projeleri yönetin</p>
+                        </div>
+                        <button class="btn btn-danger btn-sm" id="reset-projects-btn">Projeleri Sıfırla</button>
+                    </div>
+
+                    <div class="add-form">
+                        <div class="form-group">
+                            <label class="form-label">Proje Adı</label>
+                            <input type="text" class="form-input" id="project-name-input" placeholder="Proje adını girin">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ekip Adı (Opsiyonel)</label>
+                            <input type="text" class="form-input" id="project-team-input" placeholder="Ekip adını girin">
+                        </div>
+                        <button class="btn btn-primary" id="add-project-btn">Ekle</button>
+                    </div>
+
+                    <div class="item-list" id="projects-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- ========== JURORS TAB ========== -->
+                <div class="admin-section" id="section-jurors">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Jüri Üyeleri</h2>
+                            <p class="section-subtitle">Jüri üyelerini ekleyin ve PIN kodlarını yönetin</p>
+                        </div>
+                        <button class="btn btn-danger btn-sm" id="reset-jurors-btn">Jürileri Sıfırla</button>
+                    </div>
+
+                    <div class="add-form">
+                        <div class="form-group">
+                            <label class="form-label">Jüri Adı Soyadı</label>
+                            <input type="text" class="form-input" id="juror-name-input" placeholder="Ad Soyad girin">
+                        </div>
+                        <button class="btn btn-primary" id="add-juror-btn">Ekle</button>
+                    </div>
+
+                    <div class="item-list" id="jurors-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- ========== SCORES TAB ========== -->
+                <div class="admin-section" id="section-scores">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Puanlar & Sıralama</h2>
+                            <p class="section-subtitle">Tüm puanları ve genel sıralamayı görüntüleyin</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-danger btn-sm" id="reset-scores-btn">Puanları Sıfırla</button>
+                            <button class="btn btn-ghost btn-sm" id="refresh-scores-btn">Yenile</button>
+                        </div>
+                    </div>
+
+                    <!-- Rankings -->
+                    <div class="card mb-lg">
+                        <div class="card-header">
+                            <h3 class="card-title">Genel Sıralama</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="rankings-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sıra</th>
+                                        <th>Proje</th>
+                                        <th>Ekip</th>
+                                        <th>Ort. Puan</th>
+                                        <th>Jüri Sayısı</th>
+                                        <th>Grafik</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rankings-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Score Matrix -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Puan Matrisi</h3>
+                        </div>
+                        <div class="matrix-container" id="score-matrix-container">
+                            <table>
+                                <thead id="matrix-thead"></thead>
+                                <tbody id="matrix-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== PRESENTATION TAB ========== -->
+                <div class="admin-section" id="section-presentation">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Sunum Kontrolü</h2>
+                            <p class="section-subtitle">İzleyici ekranındaki sıralama açıklamasını yönetin</p>
+                        </div>
+                    </div>
+
+                    <div class="presentation-control">
+                        <!-- Reveal Control -->
+                        <div class="control-card">
+                            <div class="control-card-title">Açıklama Kontrolü</div>
+                            <div class="reveal-status" id="reveal-status">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <div class="reveal-btn-container">
+                                <button class="btn btn-primary btn-lg reveal-btn-main" id="reveal-next-btn">
+                                    Sıradakini Açıkla
+                                </button>
+                                <p class="reveal-countdown-info" id="reveal-info"></p>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="control-card">
+                            <div class="control-card-title">İşlemler</div>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <button class="btn btn-danger w-full" id="reset-presentation-btn">
+                                    Sunumu Sıfırla
+                                </button>
+                                <div style="padding: 1rem; background: rgba(0, 113, 227, 0.05); border-radius: var(--radius-lg); border: 1px solid rgba(0, 113, 227, 0.1);">
+                                    <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.3rem;">Dikkat</p>
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary);">Sunumu sıfırlamak izleyici ekranındaki tüm açıklanmış sıraları temizler.</p>
+                                </div>
+                                <div style="padding: 1rem; background: rgba(0, 113, 227, 0.05); border-radius: var(--radius-lg); border: 1px solid rgba(0, 113, 227, 0.1);">
+                                    <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.3rem;">İzleyici Ekranı</p>
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary);">İzleyici ekranını açmak için tarayıcıda şu adrese gidin:</p>
+                                    <p style="font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 0.3rem;">http://localhost:3000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== SETTINGS TAB ========== -->
+                <div class="admin-section" id="section-settings">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Ayarlar</h2>
+                            <p class="section-subtitle">Yarışma ayarlarını düzenleyin</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <!-- Countdown Setting -->
+                        <div class="setting-card">
+                            <h3 class="setting-card-title">Geri Sayım Süresi</h3>
+                            <div class="form-group">
+                                <label class="form-label">Süre (Saniye)</label>
+                                <input type="number" class="form-input" id="countdown-seconds-input" min="3" max="30" value="10">
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="save-countdown-btn">Kaydet</button>
+                        </div>
+
+                        <!-- Admin Password -->
+                        <div class="setting-card">
+                            <h3 class="setting-card-title">Admin Şifresi</h3>
+                            <div class="form-group">
+                                <label class="form-label">Yeni Şifre</label>
+                                <input type="text" class="form-input" id="admin-new-password-input" placeholder="Yeni şifre">
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="save-password-btn">Kaydet</button>
+                        </div>
+
+                        <!-- Questions -->
+                        <div class="setting-card" style="grid-column: 1 / -1;">
+                            <h3 class="setting-card-title">Değerlendirme Soruları</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                                Jüri üyelerinin her proje için cevaplayacağı soruları düzenleyin, ekleyin veya çıkartın.
+                            </p>
+                            <div class="questions-list" id="questions-list">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
+                                <button type="button" class="btn btn-ghost btn-sm" id="add-question-btn">Yeni Soru Ekle</button>
+                                <button class="btn btn-primary btn-sm" id="save-questions-btn">Soruları Kaydet</button>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="setting-card" style="grid-column: 1 / -1; border-color: rgba(255, 59, 48, 0.3); background: rgba(255, 59, 48, 0.02);">
+                            <h3 class="setting-card-title" style="color: var(--error);">Tehlikeli Bölge</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                                Tüm projeleri, jürileri, puanları ve sunum akışını sıfırlayarak sistemi ilk haline getirin. Bu işlem geri alınamaz.
+                            </p>
+                            <button class="btn btn-danger" id="reset-all-btn">Tüm Sistemi Sıfırla</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>
