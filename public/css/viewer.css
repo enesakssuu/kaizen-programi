@@ -813,14 +813,14 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 1000px;
+    max-width: 1100px;
     z-index: 1;
 }
 
 .welcome-logo-container {
     width: 100%;
-    max-width: 200px;
-    margin-bottom: 2.5rem;
+    max-width: 240px;
+    margin-bottom: 3rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -834,19 +834,18 @@
 
 .welcome-heading {
     font-family: 'Outfit', var(--font-sans);
-    font-size: clamp(2rem, 3.2vw, 3.6rem);
+    font-size: clamp(2.5rem, 4.2vw, 4.8rem);
     margin: 0;
     line-height: 1.2;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0.8rem;
+    gap: 0.95rem;
     white-space: nowrap;
 }
 
 .welcome-bold {
-    font-weight: 800;
+    font-weight: 850;
     color: #0a338b; /* Corporate Blue */
     letter-spacing: -0.02em;
 }
@@ -857,11 +856,25 @@
     letter-spacing: -0.01em;
 }
 
+.welcome-subtitle-italic {
+    font-family: 'Outfit', var(--font-sans);
+    font-size: clamp(2.2rem, 3.8vw, 4.2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: #48484a;
+    margin: 1.5rem 0 0 0;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+}
+
 @media (max-width: 992px) {
     .welcome-heading {
         white-space: normal;
         flex-direction: column;
         gap: 0.4rem;
-        font-size: 2.5rem;
+        font-size: 2.8rem;
+    }
+    .welcome-subtitle-italic {
+        font-size: 2.4rem;
     }
 }
