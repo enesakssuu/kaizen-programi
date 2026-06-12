@@ -733,9 +733,7 @@
             // Populate sound settings
             if (settings.sounds) {
                 document.getElementById('sound-countdown-enabled').checked = settings.sounds.countdownEnabled !== false;
-                document.getElementById('sound-countdown-url').value = settings.sounds.countdownUrl || '';
                 document.getElementById('sound-reveal-enabled').checked = settings.sounds.revealEnabled !== false;
-                document.getElementById('sound-reveal-url').value = settings.sounds.revealUrl || '';
             }
 
             const qRes = await fetch('/api/questions');
@@ -874,56 +872,7 @@
         e.preventDefault();
  
         const countdownEnabled = document.getElementById('sound-countdown-enabled').checked;
-        const countdownUrl = document.getElementById('sound-countdown-url').value.trim();
         const revealEnabled = document.getElementById('sound-reveal-enabled').checked;
-        const revealUrl = document.getElementById('sound-reveal-url').value.trim();
- 
-        const countdownFile = document.getElementById('sound-countdown-file').files[0];
-        const revealFile = document.getElementById('sound-reveal-file').files[0];
- 
-        // If files are selected, upload them first
-        if (countdownFile || revealFile) {
-            const formData = new FormData();
-            if (countdownFile) formData.append('countdown', countdownFile);
-            if (revealFile) formData.append('reveal', revealFile);
- 
-            try {
-                const uploadRes = await fetch('/api/settings/sounds/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                let uploadData;
-                try {
-                    uploadData = await uploadRes.json();
-                } catch (parseErr) {
-                    showToast('Sunucudan geçersiz yanıt alındı. Dosya sistemi salt okunur olabilir (Vercel vb.). Lütfen bunun yerine harici ses URL\'si kullanın.', 'error');
-                    return;
-                }
-
-                if (uploadData.success) {
-                    if (uploadData.sounds.countdownUrl) {
-                        document.getElementById('sound-countdown-url').value = uploadData.sounds.countdownUrl;
-                    }
-                    if (uploadData.sounds.revealUrl) {
-                        document.getElementById('sound-reveal-url').value = uploadData.sounds.revealUrl;
-                    }
-                    document.getElementById('sound-countdown-file').value = '';
-                    document.getElementById('sound-reveal-file').value = '';
-                    showToast('Ses dosyaları başarıyla yüklendi.', 'success');
-                } else {
-                    showToast(uploadData.message || 'Dosya yükleme hatası', 'error');
-                    return;
-                }
-            } catch (err) {
-                showToast('Dosya yüklenirken bağlantı hatası oluştu. Dosya sistemi salt okunur olabilir.', 'error');
-                return;
-            }
-        }
- 
-        // Save text settings
-        const freshCountdownUrl = document.getElementById('sound-countdown-url').value.trim();
-        const freshRevealUrl = document.getElementById('sound-reveal-url').value.trim();
  
         try {
             const res = await fetch('/api/settings', {
@@ -932,9 +881,9 @@
                 body: JSON.stringify({
                     sounds: {
                         countdownEnabled,
-                        countdownUrl: freshCountdownUrl,
+                        countdownUrl: "",
                         revealEnabled,
-                        revealUrl: freshRevealUrl
+                        revealUrl: ""
                     }
                 })
             });

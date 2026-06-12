@@ -287,42 +287,26 @@
                         <div class="setting-card" style="grid-column: 1 / -1;">
                             <h3 class="setting-card-title">Ses Efekti Ayarları</h3>
                             <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
-                                Yarışma sonuçları açıklanırken çalınacak ses efektlerini yönetin. Kendi ses dosyalarınızı (.mp3, .wav) yükleyebilir veya harici ses linkleri tanımlayabilirsiniz. Boş bırakırsanız sistemin kendi dijital ses efektleri çalacaktır.
+                                Yarışma sonuçları açıklanırken çalınacak varsayılan ses efektlerini (Geri sayım tik sesi ve açıklanma fanfar sesi) aktif veya pasif hale getirebilirsiniz.
                             </p>
                             
-                            <form id="sound-settings-form" enctype="multipart/form-data">
+                            <form id="sound-settings-form">
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
                                     <!-- Countdown Sound -->
-                                    <div style="padding: 1.25rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md);">
-                                        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-primary); font-weight: 600;">Geri Sayım Tik Sesi</h4>
-                                        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                                            <input type="checkbox" id="sound-countdown-enabled" checked style="width: 16px; height: 16px; cursor: pointer;">
+                                    <div style="padding: 1.25rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
+                                        <h4 style="font-size: 0.9rem; color: var(--text-primary); font-weight: 600; margin: 0;">Geri Sayım Tik Sesi</h4>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <input type="checkbox" id="sound-countdown-enabled" checked style="width: 18px; height: 18px; cursor: pointer;">
                                             <label for="sound-countdown-enabled" style="font-size: 0.85rem; font-weight: 500; cursor: pointer; user-select: none;">Aktif</label>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0.75rem;">
-                                            <label class="form-label" style="font-size: 0.75rem;">Ses Dosyası Yükle (.mp3, .wav)</label>
-                                            <input type="file" class="form-input" id="sound-countdown-file" accept="audio/mpeg,audio/mp3,audio/wav" style="padding: 0.35rem;">
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label class="form-label" style="font-size: 0.75rem;">Harici Dosya Yolu / URL</label>
-                                            <input type="text" class="form-input" id="sound-countdown-url" placeholder="Varsayılan dijital ses için boş bırakın">
                                         </div>
                                     </div>
                                     
                                     <!-- Reveal Sound -->
-                                    <div style="padding: 1.25rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md);">
-                                        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-primary); font-weight: 600;">Açıklanma / Fanfar Sesi</h4>
-                                        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                                            <input type="checkbox" id="sound-reveal-enabled" checked style="width: 16px; height: 16px; cursor: pointer;">
+                                    <div style="padding: 1.25rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
+                                        <h4 style="font-size: 0.9rem; color: var(--text-primary); font-weight: 600; margin: 0;">Açıklanma / Fanfar Sesi</h4>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <input type="checkbox" id="sound-reveal-enabled" checked style="width: 18px; height: 18px; cursor: pointer;">
                                             <label for="sound-reveal-enabled" style="font-size: 0.85rem; font-weight: 500; cursor: pointer; user-select: none;">Aktif</label>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0.75rem;">
-                                            <label class="form-label" style="font-size: 0.75rem;">Ses Dosyası Yükle (.mp3, .wav)</label>
-                                            <input type="file" class="form-input" id="sound-reveal-file" accept="audio/mpeg,audio/mp3,audio/wav" style="padding: 0.35rem;">
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label class="form-label" style="font-size: 0.75rem;">Harici Dosya Yolu / URL</label>
-                                            <input type="text" class="form-input" id="sound-reveal-url" placeholder="Varsayılan dijital ses için boş bırakın">
                                         </div>
                                     </div>
                                 </div>
