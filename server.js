@@ -92,14 +92,13 @@ function getDefaultData() {
                     label: "Takım Çalışmasının Sağlanması",
                     maxScore: 10,
                     isBonus: false,
-                    description: "Ekip içi iş birliği ve koordinasyon kalitesi"
-                },
-                {
-                    id: "c3b",
-                    label: "Farklı Birimlerden Ekip Bonusu",
-                    maxScore: 5,
-                    isBonus: true,
-                    description: "Proje ekibi farklı birimlerden oluşuyor mu?"
+                    description: "Ekip içi iş birliği ve koordinasyon kalitesi",
+                    subBonus: {
+                        id: "c3b",
+                        label: "Farklı Birimlerden Ekip Bonusu",
+                        maxScore: 5,
+                        description: "Proje ekibi farklı birimlerden oluşuyor mu?"
+                    }
                 },
                 {
                     id: "c4",
@@ -117,10 +116,10 @@ function getDefaultData() {
                 },
                 {
                     id: "c6",
-                    label: "Sürdürülebilirlik Bonusu",
+                    label: "Sürdürülebilirlik",
                     maxScore: 10,
-                    isBonus: true,
-                    description: "Standartlaştırma, yaygınlaştırma ve kaizenin süreçte devamlılığı sağlandı mı?"
+                    isBonus: false,
+                    description: "Standartlaştırma, yaygınlaştırma ve kaizenin süreçte devamlılığı"
                 }
             ],
             adminPassword: "kaizen2026",
@@ -232,7 +231,11 @@ function calculateRankings(data) {
         projectScores[score.projectId].count += 1;
     }
 
-    const maxScore = data.settings.criteria.reduce((sum, c) => sum + c.maxScore, 0);
+    const maxScore = data.settings.criteria.reduce((sum, c) => {
+        let s = sum + c.maxScore;
+        if (c.subBonus) s += c.subBonus.maxScore;
+        return s;
+    }, 0);
 
     const rankings = data.projects.map(project => {
         const ps = projectScores[project.id] || { totalSum: 0, count: 0 };
@@ -379,20 +382,27 @@ app.post('/api/scores', async (req, res) => {
     const data = await readData();
     const criteria = data.settings.criteria;
 
-    if (!jurorId || !projectId || !scores || !Array.isArray(scores) || scores.length !== criteria.length) {
-        return res.status(400).json({ message: 'Geçersiz puan verisi' });
+    // Build flat list of score slots: each criterion + its subBonus (if any)
+    const slots = [];
+    for (const c of criteria) {
+        slots.push({ label: c.label, maxScore: c.maxScore, isBonus: false });
+        if (c.subBonus) {
+            slots.push({ label: c.subBonus.label, maxScore: c.subBonus.maxScore, isBonus: true });
+        }
     }
 
-    // Validate each score against its criterion's maxScore (0 allowed for non-bonus, 0 or maxScore for bonus)
-    for (let i = 0; i < criteria.length; i++) {
-        const c = criteria[i];
+    if (!jurorId || !projectId || !scores || !Array.isArray(scores) || scores.length !== slots.length) {
+        return res.status(400).json({ message: `Geçersiz puan verisi (beklenen ${slots.length} değer, gelen ${scores ? scores.length : 0})` });
+    }
+
+    for (let i = 0; i < slots.length; i++) {
+        const slot = slots[i];
         const s = scores[i];
-        if (typeof s !== 'number' || s < 0 || s > c.maxScore) {
-            return res.status(400).json({ message: `"${c.label}" için geçersiz puan (0-${c.maxScore} arası olmalı)` });
+        if (typeof s !== 'number' || s < 0 || s > slot.maxScore) {
+            return res.status(400).json({ message: `"${slot.label}" için geçersiz puan (0-${slot.maxScore} arası olmalı)` });
         }
-        // Bonus criteria can only be 0 or maxScore
-        if (c.isBonus && s !== 0 && s !== c.maxScore) {
-            return res.status(400).json({ message: `"${c.label}" bonus kriteri 0 veya ${c.maxScore} olmalıdır` });
+        if (slot.isBonus && s !== 0 && s !== slot.maxScore) {
+            return res.status(400).json({ message: `"${slot.label}" bonus kriteri 0 veya ${slot.maxScore} olmalıdır` });
         }
     }
 

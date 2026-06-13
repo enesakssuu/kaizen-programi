@@ -26,11 +26,11 @@
                 <form class="login-form" id="login-form">
                     <div class="form-group">
                         <label class="form-label" for="login-name">Adınız Soyadınız</label>
-                        <input type="text" class="form-input" id="login-name" placeholder="Örn: Ahmet Yılmaz" required autocomplete="name">
+                        <input type="text" class="form-input" id="login-name" required autocomplete="name">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="login-pin">PIN Kodu</label>
-                        <input type="password" class="form-input" id="login-pin" placeholder="4 haneli PIN" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required autocomplete="off">
+                        <input type="password" class="form-input" id="login-pin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required autocomplete="off">
                     </div>
                     <div class="login-error" id="login-error">
                         <span id="login-error-text">Geçersiz ad veya PIN kodu</span>
@@ -47,9 +47,9 @@
             <!-- Header -->
             <header class="dashboard-header">
                 <div class="dashboard-header-left">
-                    <h1>Hoş geldiniz, <span id="juror-name-display"></span></h1>
-                    <div class="juror-badge">
-                        <span>Jüri Üyesi</span>
+                    <div class="juror-identity">
+                        <span class="juror-identity-label">Jüri Üyesi</span>
+                        <h1 class="juror-identity-name" id="juror-name-display"></h1>
                     </div>
                 </div>
                 <button class="btn btn-ghost btn-sm" id="logout-btn">

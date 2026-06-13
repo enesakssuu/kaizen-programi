@@ -108,10 +108,26 @@
     gap: 1rem;
 }
 
-.dashboard-header-left h1 {
-    font-size: 1rem;
-    font-weight: 600;
+.juror-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.juror-identity-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.juror-identity-name {
+    font-size: 1.15rem;
+    font-weight: 700;
     color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
 }
 
 .juror-badge {
@@ -626,6 +642,34 @@
 .bonus-toggle-label.bonus-active {
     color: #1d9d37;
     font-weight: 600;
+}
+
+/* Sub-bonus block — embedded inside criterion card */
+.sub-bonus-block {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, #fff8f0, #fffaf7);
+    border: 1.5px dashed rgba(252, 80, 0, 0.3);
+    border-radius: var(--radius-md);
+}
+
+.sub-bonus-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.3rem;
+}
+
+.sub-bonus-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.score-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 /* ==================== RESPONSIVE ==================== */
