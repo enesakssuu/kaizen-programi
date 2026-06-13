@@ -8,7 +8,7 @@
     let currentJuror = null;
     let projects = [];
     let jurorScores = {};
-    let questions = [];
+    let criteria = [];
     let currentScoringProject = null;
 
     // ==================== DOM ELEMENTS ====================
@@ -34,6 +34,7 @@
     const $scoringProjectTeam = document.getElementById('scoring-project-team');
     const $scoringQuestions = document.getElementById('scoring-questions');
     const $scoringTotal = document.getElementById('scoring-total');
+    const $scoringTotalMax = document.getElementById('scoring-total-max');
     const $toastContainer = document.getElementById('toast-container');
 
     // ==================== INIT ====================
@@ -72,12 +73,10 @@
         $scoringCancel.addEventListener('click', closeScoring);
         $scoringForm.addEventListener('submit', handleSaveScore);
 
-        // Close modal on overlay click
         $scoringModal.addEventListener('click', function (e) {
             if (e.target === $scoringModal) closeScoring();
         });
 
-        // Escape key closes modal
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeScoring();
         });
@@ -131,21 +130,20 @@
         $loginScreen.classList.add('hidden');
         $dashboard.classList.remove('hidden');
         $jurorNameDisplay.textContent = currentJuror.name;
-
         await loadData();
     }
 
     async function loadData() {
         try {
-            const [projectsRes, scoresRes, questionsRes] = await Promise.all([
+            const [projectsRes, scoresRes, criteriaRes] = await Promise.all([
                 fetch('/api/projects'),
                 fetch('/api/scores/' + currentJuror.id),
-                fetch('/api/questions')
+                fetch('/api/criteria')
             ]);
 
             projects = await projectsRes.json();
             jurorScores = await scoresRes.json();
-            questions = await questionsRes.json();
+            criteria = await criteriaRes.json();
 
             renderProjects();
             updateProgress();
@@ -164,6 +162,7 @@
         }
 
         $emptyState.classList.add('hidden');
+        const maxScore = criteria.reduce((s, c) => s + c.maxScore, 0);
 
         projects.forEach((project, index) => {
             const score = jurorScores[project.id];
@@ -178,7 +177,7 @@
                 scoreHtml = `
                     <div class="project-card-score">
                         <span class="project-card-score-value">${score.total}</span>
-                        <span class="project-card-score-max">/ 60</span>
+                        <span class="project-card-score-max">/ ${maxScore}</span>
                     </div>
                 `;
             }
@@ -219,43 +218,103 @@
         $scoringProjectName.textContent = project.name;
         $scoringProjectTeam.textContent = project.team || '';
 
-        // Build question inputs
         $scoringQuestions.innerHTML = '';
 
         const existingScore = jurorScores[project.id];
+        const maxTotal = criteria.reduce((s, c) => s + c.maxScore, 0);
 
-        questions.forEach((question, index) => {
-            const value = existingScore ? existingScore.scores[index] : 5;
+        if ($scoringTotalMax) $scoringTotalMax.textContent = maxTotal;
+
+        criteria.forEach((criterion, index) => {
+            const existingVal = existingScore ? existingScore.scores[index] : (criterion.isBonus ? 0 : Math.round(criterion.maxScore / 2));
 
             const questionDiv = document.createElement('div');
-            questionDiv.className = 'score-question';
-            questionDiv.innerHTML = `
-                <div class="score-question-label">
-                    <span class="score-question-number">${index + 1}</span>
-                    <span>${escapeHtml(question)}</span>
-                </div>
-                <div class="score-slider-container">
-                    <input type="range" class="score-slider" min="1" max="10" value="${value}" 
-                           data-index="${index}" id="score-slider-${index}">
-                    <div class="score-value-display ${getScoreClass(value)}" id="score-display-${index}">${value}</div>
-                </div>
-            `;
+
+            if (criterion.isBonus) {
+                // Bonus criteria: Yes/No toggle
+                const isChecked = existingVal === criterion.maxScore;
+                questionDiv.className = 'score-question score-question--bonus';
+                questionDiv.innerHTML = `
+                    <div class="score-question-label">
+                        <span class="score-question-number score-badge--bonus">BONUS</span>
+                        <span class="score-criterion-label">${escapeHtml(criterion.label)}</span>
+                        <span class="score-criterion-max">+${criterion.maxScore} puan</span>
+                    </div>
+                    <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>
+                    <div class="bonus-toggle-row">
+                        <label class="bonus-toggle" for="bonus-toggle-${index}">
+                            <input type="checkbox" id="bonus-toggle-${index}" data-index="${index}" data-maxscore="${criterion.maxScore}" class="bonus-checkbox" ${isChecked ? 'checked' : ''}>
+                            <span class="bonus-toggle-track">
+                                <span class="bonus-toggle-thumb"></span>
+                            </span>
+                            <span class="bonus-toggle-label" id="bonus-label-${index}">${isChecked ? 'Evet — +' + criterion.maxScore + ' puan eklendi' : 'Hayır — bonus yok'}</span>
+                        </label>
+                    </div>
+                `;
+                questionDiv.querySelector('.bonus-checkbox').addEventListener('change', function () {
+                    const lbl = document.getElementById('bonus-label-' + index);
+                    if (this.checked) {
+                        lbl.textContent = 'Evet — +' + this.dataset.maxscore + ' puan eklendi';
+                        lbl.classList.add('bonus-active');
+                    } else {
+                        lbl.textContent = 'Hayır — bonus yok';
+                        lbl.classList.remove('bonus-active');
+                    }
+                    updateTotal();
+                });
+                // Set initial label state
+                if (isChecked) {
+                    const lbl = questionDiv.querySelector('.bonus-toggle-label');
+                    if (lbl) lbl.classList.add('bonus-active');
+                }
+            } else {
+                // Normal criteria: slider with its own max
+                questionDiv.className = 'score-question';
+                questionDiv.innerHTML = `
+                    <div class="score-question-label">
+                        <span class="score-question-number">${getBaseIndex(index)}</span>
+                        <span class="score-criterion-label">${escapeHtml(criterion.label)}</span>
+                        <span class="score-criterion-max">/ ${criterion.maxScore} puan</span>
+                    </div>
+                    <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>
+                    <div class="score-slider-container">
+                        <div class="score-slider-labels">
+                            <span>0</span>
+                            <span>${Math.round(criterion.maxScore / 2)}</span>
+                            <span>${criterion.maxScore}</span>
+                        </div>
+                        <input type="range" class="score-slider" min="0" max="${criterion.maxScore}" value="${existingVal}"
+                               data-index="${index}" id="score-slider-${index}">
+                        <div class="score-value-display ${getScoreClass(existingVal, criterion.maxScore)}" id="score-display-${index}">
+                            ${existingVal}<span class="score-display-max">/${criterion.maxScore}</span>
+                        </div>
+                    </div>
+                `;
+
+                const slider = questionDiv.querySelector('.score-slider');
+                const display = questionDiv.querySelector('.score-value-display');
+                slider.addEventListener('input', function () {
+                    const val = parseInt(this.value);
+                    display.innerHTML = val + `<span class="score-display-max">/${criterion.maxScore}</span>`;
+                    display.className = 'score-value-display ' + getScoreClass(val, criterion.maxScore);
+                    updateTotal();
+                });
+            }
 
             $scoringQuestions.appendChild(questionDiv);
-
-            // Bind slider events
-            const slider = questionDiv.querySelector('.score-slider');
-            const display = questionDiv.querySelector('.score-value-display');
-            slider.addEventListener('input', function () {
-                const val = parseInt(this.value);
-                display.textContent = val;
-                display.className = 'score-value-display ' + getScoreClass(val);
-                updateTotal();
-            });
         });
 
         updateTotal();
         $scoringModal.classList.add('active');
+    }
+
+    // Get base index (skip bonus labels for numbering)
+    function getBaseIndex(idx) {
+        let num = 0;
+        for (let i = 0; i <= idx; i++) {
+            if (!criteria[i].isBonus) num++;
+        }
+        return num;
     }
 
     function closeScoring() {
@@ -265,16 +324,22 @@
 
     function updateTotal() {
         let total = 0;
-        questions.forEach((_, index) => {
-            const slider = document.getElementById('score-slider-' + index);
-            if (slider) total += parseInt(slider.value);
+        criteria.forEach((criterion, index) => {
+            if (criterion.isBonus) {
+                const checkbox = document.getElementById('bonus-toggle-' + index);
+                if (checkbox && checkbox.checked) total += criterion.maxScore;
+            } else {
+                const slider = document.getElementById('score-slider-' + index);
+                if (slider) total += parseInt(slider.value);
+            }
         });
         $scoringTotal.textContent = total;
     }
 
-    function getScoreClass(val) {
-        if (val >= 7) return 'high';
-        if (val >= 4) return 'mid';
+    function getScoreClass(val, max) {
+        const ratio = val / max;
+        if (ratio >= 0.7) return 'high';
+        if (ratio >= 0.4) return 'mid';
         return 'low';
     }
 
@@ -284,9 +349,14 @@
         if (!currentScoringProject || !currentJuror) return;
 
         const scores = [];
-        questions.forEach((_, index) => {
-            const slider = document.getElementById('score-slider-' + index);
-            scores.push(parseInt(slider.value));
+        criteria.forEach((criterion, index) => {
+            if (criterion.isBonus) {
+                const checkbox = document.getElementById('bonus-toggle-' + index);
+                scores.push(checkbox && checkbox.checked ? criterion.maxScore : 0);
+            } else {
+                const slider = document.getElementById('score-slider-' + index);
+                scores.push(slider ? parseInt(slider.value) : 0);
+            }
         });
 
         try {

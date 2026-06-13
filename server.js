@@ -72,13 +72,56 @@ function getDefaultData() {
             }
         },
         settings: {
-            questions: [
-                "Proje işi ne kadar kolaylaştırıyor?",
-                "Projenin yaratıcılık ve yenilikçilik düzeyi nedir?",
-                "Projenin uygulanabilirlik düzeyi nedir?",
-                "Projenin maliyet/zaman tasarrufu sağlama potansiyeli nedir?",
-                "Projenin sunumu ne kadar etkili ve anlaşılır?",
-                "Projenin sürdürülebilirlik ve yaygınlaştırılabilirlik potansiyeli nedir?"
+            criteria: [
+                {
+                    id: "c1",
+                    label: "Hasta Güvenliği ve Memnuniyeti (Hastaya Yansıması)",
+                    maxScore: 30,
+                    isBonus: false,
+                    description: "Projenin hasta güvenliğine ve memnuniyetine doğrudan katkısı"
+                },
+                {
+                    id: "c2",
+                    label: "Çalışan Güvenliği ve Memnuniyeti",
+                    maxScore: 15,
+                    isBonus: false,
+                    description: "Projenin çalışan güvenliğini ve memnuniyetini artırma etkisi"
+                },
+                {
+                    id: "c3",
+                    label: "Takım Çalışmasının Sağlanması",
+                    maxScore: 10,
+                    isBonus: false,
+                    description: "Ekip içi iş birliği ve koordinasyon kalitesi"
+                },
+                {
+                    id: "c3b",
+                    label: "Farklı Birimlerden Ekip Bonusu",
+                    maxScore: 5,
+                    isBonus: true,
+                    description: "Proje ekibi farklı birimlerden oluşuyor mu?"
+                },
+                {
+                    id: "c4",
+                    label: "Problem Çözme Tekniklerinin Kullanımı ve Standartlaştırılması",
+                    maxScore: 25,
+                    isBonus: false,
+                    description: "Kaizen, 5S, PDCA vb. problem çözme metodolojilerinin etkin kullanımı ve standart hale getirilmesi"
+                },
+                {
+                    id: "c5",
+                    label: "Kazanım",
+                    maxScore: 20,
+                    isBonus: false,
+                    description: "İş gücü, makine/cihaz verimliliği, malzeme tasarrufu, enerji tasarrufu, ergonomi, dijital dönüşüm, dokümantasyon"
+                },
+                {
+                    id: "c6",
+                    label: "Sürdürülebilirlik Bonusu",
+                    maxScore: 10,
+                    isBonus: true,
+                    description: "Standartlaştırma, yaygınlaştırma ve kaizenin süreçte devamlılığı sağlandı mı?"
+                }
             ],
             adminPassword: "kaizen2026",
             countdownSeconds: 10,
@@ -120,6 +163,8 @@ function ensureDefaults(data) {
         settings: {
             ...defaults.settings,
             ...(data.settings || {}),
+            // Always use default criteria (not user-editable via API)
+            criteria: defaults.settings.criteria,
             sounds: {
                 ...defaults.settings.sounds,
                 ...((data.settings && data.settings.sounds) || {})
@@ -182,13 +227,12 @@ function calculateRankings(data) {
         if (!projectScores[score.projectId]) {
             projectScores[score.projectId] = { totalSum: 0, count: 0 };
         }
-        const scoreTotal = score.scores.reduce((a, b) => a + b, 0);
-        projectScores[score.projectId].totalSum += scoreTotal;
+        // score.total already contains the computed total including bonuses
+        projectScores[score.projectId].totalSum += score.total;
         projectScores[score.projectId].count += 1;
     }
 
-    const questionCount = data.settings.questions.length;
-    const maxScore = questionCount * 10;
+    const maxScore = data.settings.criteria.reduce((sum, c) => sum + c.maxScore, 0);
 
     const rankings = data.projects.map(project => {
         const ps = projectScores[project.id] || { totalSum: 0, count: 0 };
@@ -333,23 +377,32 @@ app.get('/api/scores/:jurorId', async (req, res) => {
 app.post('/api/scores', async (req, res) => {
     const { jurorId, projectId, scores } = req.body;
     const data = await readData();
-    const questionCount = data.settings.questions.length;
+    const criteria = data.settings.criteria;
 
-    if (!jurorId || !projectId || !scores || scores.length !== questionCount) {
+    if (!jurorId || !projectId || !scores || !Array.isArray(scores) || scores.length !== criteria.length) {
         return res.status(400).json({ message: 'Geçersiz puan verisi' });
     }
 
-    // Validate scores are 1-10
-    if (scores.some(s => s < 1 || s > 10)) {
-        return res.status(400).json({ message: 'Puanlar 1-10 arasında olmalıdır' });
+    // Validate each score against its criterion's maxScore (0 allowed for non-bonus, 0 or maxScore for bonus)
+    for (let i = 0; i < criteria.length; i++) {
+        const c = criteria[i];
+        const s = scores[i];
+        if (typeof s !== 'number' || s < 0 || s > c.maxScore) {
+            return res.status(400).json({ message: `"${c.label}" için geçersiz puan (0-${c.maxScore} arası olmalı)` });
+        }
+        // Bonus criteria can only be 0 or maxScore
+        if (c.isBonus && s !== 0 && s !== c.maxScore) {
+            return res.status(400).json({ message: `"${c.label}" bonus kriteri 0 veya ${c.maxScore} olmalıdır` });
+        }
     }
 
+    const total = scores.reduce((a, b) => a + b, 0);
     const key = `${jurorId}_${projectId}`;
     data.scores[key] = {
         jurorId,
         projectId,
         scores,
-        total: scores.reduce((a, b) => a + b, 0),
+        total,
         timestamp: new Date().toISOString()
     };
     await writeData(data);
@@ -363,22 +416,22 @@ app.get('/api/rankings', async (req, res) => {
     res.json(rankings);
 });
 
-// ==================== QUESTIONS ====================
+// ==================== CRITERIA ====================
+app.get('/api/criteria', async (req, res) => {
+    const data = await readData();
+    res.json(data.settings.criteria);
+});
+
+// Keep /api/questions as alias for backward compat (returns criteria labels)
 app.get('/api/questions', async (req, res) => {
     const data = await readData();
-    res.json(data.settings.questions);
+    res.json(data.settings.criteria.map(c => c.label));
 });
 
 // ==================== SETTINGS ====================
 app.put('/api/settings', async (req, res) => {
     const data = await readData();
-    const { questions, countdownSeconds, adminPassword, sounds, winnerRevealSeconds } = req.body;
- 
-    if (questions && Array.isArray(questions)) {
-        if (questions.length > 0 && questions.every(q => q && q.trim().length > 0)) {
-            data.settings.questions = questions.map(q => q.trim());
-        }
-    }
+    const { countdownSeconds, adminPassword, sounds, winnerRevealSeconds } = req.body;
  
     if (countdownSeconds && countdownSeconds >= 3 && countdownSeconds <= 30) {
         data.settings.countdownSeconds = parseInt(countdownSeconds);

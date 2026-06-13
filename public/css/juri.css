@@ -451,6 +451,183 @@
     font-weight: 400;
 }
 
+/* ==================== CRITERIA SCORING ==================== */
+.score-criterion-label {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+
+.score-criterion-max {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(10, 51, 139, 0.07);
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.score-criterion-desc {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin: 0.3rem 0 0.8rem 1.75rem;
+    line-height: 1.45;
+}
+
+.score-display-max {
+    font-size: 0.6em;
+    font-weight: 400;
+    opacity: 0.6;
+}
+
+/* Wider score value display for larger numbers */
+.score-value-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    padding: 0 0.4rem;
+}
+
+.score-value-display.high {
+    color: #1d9d37;
+    border-color: rgba(52, 199, 89, 0.4);
+}
+
+.score-value-display.mid {
+    color: #cc7600;
+    border-color: rgba(255, 149, 0, 0.4);
+}
+
+.score-value-display.low {
+    color: #d82c23;
+    border-color: rgba(255, 59, 48, 0.4);
+}
+
+.score-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.score-slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.score-slider-container > .score-value-display {
+    align-self: flex-end;
+}
+
+.score-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Bonus Question Style */
+.score-question--bonus {
+    background: linear-gradient(135deg, #fff8f0, #fff);
+    border: 1.5px dashed rgba(252, 80, 0, 0.25);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+}
+
+.score-badge--bonus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    background: rgba(252, 80, 0, 0.12);
+    color: #d94900;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    width: auto;
+    height: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Bonus Toggle Switch */
+.bonus-toggle-row {
+    margin-top: 0.5rem;
+}
+
+.bonus-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.bonus-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.bonus-toggle-track {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    background: #e5e5ea;
+    border-radius: 13px;
+    transition: background 0.25s;
+    flex-shrink: 0;
+}
+
+.bonus-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+    transition: left 0.25s;
+}
+
+.bonus-checkbox:checked + .bonus-toggle-track {
+    background: #34c759;
+}
+
+.bonus-checkbox:checked + .bonus-toggle-track .bonus-toggle-thumb {
+    left: 21px;
+}
+
+.bonus-toggle-label {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.bonus-toggle-label.bonus-active {
+    color: #1d9d37;
+    font-weight: 600;
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 640px) {
     .dashboard-header {
