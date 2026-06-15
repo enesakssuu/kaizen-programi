@@ -876,13 +876,7 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-app.get('/metot', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'metot.html'));
-});
 
-app.get('/method', (req, res) => {
-    res.redirect('/metot');
-});
 
 // ==================== START SERVER ====================
 if (process.env.NODE_ENV !== 'production') {
