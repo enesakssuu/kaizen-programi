@@ -198,7 +198,9 @@
 
         $revealProjectName.textContent = winner.projectName;
         $revealProjectTeam.textContent = winner.projectTeam || 'Ekip Belirtilmemiş';
-        $revealScoreValue.textContent = winner.averageScore.toFixed(1);
+        if ($revealScoreValue) {
+            $revealScoreValue.textContent = winner.averageScore.toFixed(1);
+        }
 
         playReveal();
         launchConfetti();

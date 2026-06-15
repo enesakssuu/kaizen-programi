@@ -851,11 +851,18 @@ app.post('/api/presentation/timer/set', async (req, res) => {
 // ==================== ADMIN ALL SCORES ====================
 app.get('/api/admin/all-scores', async (req, res) => {
     const data = await readData();
+    const methodCriterion = data.settings.criteria.find(c => c.isMethod === true);
     res.json({
         projects: data.projects,
         jurors: data.jurors,
         scores: data.scores,
-        rankings: calculateRankings(data)
+        rankings: calculateRankings(data),
+        methodRankings: calculateMethodRankings(data),
+        methodCriterion: methodCriterion ? {
+            id: methodCriterion.id,
+            label: methodCriterion.label,
+            maxScore: methodCriterion.maxScore
+        } : null
     });
 });
 

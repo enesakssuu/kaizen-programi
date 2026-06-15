@@ -10,6 +10,8 @@
     let jurors = [];
     let allScores = {};
     let rankings = [];
+    let methodRankings = [];
+    let methodCriterion = null;
     let presentationStatus = null;
     let settings = {};
     let revealInProgress = false;
@@ -46,6 +48,9 @@
     // Scores
     const $refreshScoresBtn = document.getElementById('refresh-scores-btn');
     const $rankingsTbody = document.getElementById('rankings-tbody');
+    const $methodRankingsCard = document.getElementById('method-rankings-card');
+    const $methodQuestionBadge = document.getElementById('method-question-badge');
+    const $methodRankingsTbody = document.getElementById('method-rankings-tbody');
     const $matrixThead = document.getElementById('matrix-thead');
     const $matrixTbody = document.getElementById('matrix-tbody');
 
@@ -383,7 +388,10 @@
             jurors = data.jurors;
             allScores = data.scores;
             rankings = data.rankings;
+            methodRankings = data.methodRankings || [];
+            methodCriterion = data.methodCriterion || null;
             renderRankings();
+            renderMethodRankings();
             renderScoreMatrix();
         } catch (err) {
             showToast('Puanlar yüklenemedi', 'error');
@@ -418,6 +426,45 @@
                 <td><span class="score-bar-mini"><span class="score-bar-mini-fill" style="width:${percent}%"></span></span></td>
             `;
             $rankingsTbody.appendChild(row);
+        });
+    }
+
+    function renderMethodRankings() {
+        if (!methodCriterion) {
+            $methodRankingsCard.style.display = 'none';
+            return;
+        }
+
+        $methodRankingsCard.style.display = 'block';
+        $methodQuestionBadge.textContent = `${methodCriterion.label}`;
+
+        $methodRankingsTbody.innerHTML = '';
+
+        if (methodRankings.length === 0) {
+            $methodRankingsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">Henüz puanlanmış proje yok</td></tr>';
+            return;
+        }
+
+        methodRankings.forEach((r, index) => {
+            const rank = index + 1;
+            let rankClass = '';
+            if (rank === 1) rankClass = 'rank-1';
+            else if (rank === 2) rankClass = 'rank-2';
+            else if (rank === 3) rankClass = 'rank-3';
+
+            const maxScore = methodCriterion.maxScore || 25;
+            const percent = (r.averageScore / maxScore) * 100;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><span class="rank-cell ${rankClass}">${rank}</span></td>
+                <td style="font-weight:600;">${escapeHtml(r.projectName)}</td>
+                <td style="color:var(--text-muted);">${escapeHtml(r.projectTeam)}</td>
+                <td style="font-weight:700; font-family:var(--font-display);">${r.averageScore.toFixed(1)} / ${maxScore}</td>
+                <td><span class="badge ${r.jurorCount === r.totalJurors ? 'badge-success' : 'badge-warning'}">${r.jurorCount} / ${r.totalJurors}</span></td>
+                <td><span class="score-bar-mini"><span class="score-bar-mini-fill" style="width:${percent}%"></span></span></td>
+            `;
+            $methodRankingsTbody.appendChild(row);
         });
     }
 
