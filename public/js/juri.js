@@ -227,10 +227,11 @@
             wrapper.className = 'score-question';
 
             // Main criterion slider
+            const methodBadge = criterion.isMethod ? ` <span class="score-badge--method">METOT</span>` : '';
             wrapper.innerHTML = `
                 <div class="score-question-label">
                     <span class="score-question-number">${criterionNum}</span>
-                    <span class="score-criterion-label">${escapeHtml(criterion.label)}</span>
+                    <span class="score-criterion-label">${escapeHtml(criterion.label)}${methodBadge}</span>
                     <span class="score-criterion-max">/ ${criterion.maxScore} puan</span>
                 </div>
                 <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>

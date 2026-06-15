@@ -63,6 +63,9 @@ function getDefaultData() {
             revealedRanks: [],
             isRevealing: false,
             currentRank: null,
+            methodRevealed: false,
+            methodRevealStarted: false,
+            methodRevealTimestamp: null,
             timer: {
                 duration: 600, // 10 minutes default
                 remaining: 600,
@@ -151,6 +154,9 @@ function ensureDefaults(data) {
             revealedRanks: Array.isArray(presentation.revealedRanks) ? presentation.revealedRanks : defaults.presentation.revealedRanks,
             isRevealing: typeof presentation.isRevealing === 'boolean' ? presentation.isRevealing : defaults.presentation.isRevealing,
             currentRank: presentation.currentRank !== undefined ? presentation.currentRank : defaults.presentation.currentRank,
+            methodRevealed: typeof presentation.methodRevealed === 'boolean' ? presentation.methodRevealed : defaults.presentation.methodRevealed,
+            methodRevealStarted: typeof presentation.methodRevealStarted === 'boolean' ? presentation.methodRevealStarted : defaults.presentation.methodRevealStarted,
+            methodRevealTimestamp: presentation.methodRevealTimestamp !== undefined ? presentation.methodRevealTimestamp : defaults.presentation.methodRevealTimestamp,
             timer: {
                 duration: typeof timer.duration === 'number' ? timer.duration : defaults.presentation.timer.duration,
                 remaining: typeof timer.remaining === 'number' ? timer.remaining : defaults.presentation.timer.remaining,
@@ -162,7 +168,21 @@ function ensureDefaults(data) {
         settings: {
             ...defaults.settings,
             ...(data.settings || {}),
-            criteria: Array.isArray(data.settings && data.settings.criteria) ? data.settings.criteria : defaults.settings.criteria,
+            criteria: (() => {
+                const list = Array.isArray(data.settings && data.settings.criteria) ? data.settings.criteria : defaults.settings.criteria;
+                let hasMethod = false;
+                return list.map(c => {
+                    const cCopy = { ...c };
+                    if (cCopy.isMethod) {
+                        if (hasMethod) {
+                            cCopy.isMethod = false;
+                        } else {
+                            hasMethod = true;
+                        }
+                    }
+                    return cCopy;
+                });
+            })(),
             sounds: {
                 ...defaults.settings.sounds,
                 ...((data.settings && data.settings.sounds) || {})
@@ -253,6 +273,63 @@ function calculateRankings(data) {
     rankings.sort((a, b) => b.averageScore - a.averageScore);
     return rankings;
 }
+
+function calculateMethodRankings(data) {
+    const criteria = data.settings.criteria;
+    const methodCriterionIndex = criteria.findIndex(c => c.isMethod === true);
+    if (methodCriterionIndex === -1) {
+        return [];
+    }
+
+    const methodCriterion = criteria[methodCriterionIndex];
+
+    // Find flat slot index corresponding to this criterion
+    let slotIndex = 0;
+    let methodSlotIndex = -1;
+    for (let i = 0; i < criteria.length; i++) {
+        if (i === methodCriterionIndex) {
+            methodSlotIndex = slotIndex;
+            break;
+        }
+        slotIndex++;
+        if (criteria[i].subBonus) {
+            slotIndex++;
+        }
+    }
+
+    if (methodSlotIndex === -1) {
+        return [];
+    }
+
+    const projectMethodScores = {};
+    for (const key in data.scores) {
+        const score = data.scores[key];
+        const val = score.scores[methodSlotIndex] || 0;
+        if (!projectMethodScores[score.projectId]) {
+            projectMethodScores[score.projectId] = { totalSum: 0, count: 0 };
+        }
+        projectMethodScores[score.projectId].totalSum += val;
+        projectMethodScores[score.projectId].count += 1;
+    }
+
+    const rankings = data.projects.map(project => {
+        const ps = projectMethodScores[project.id] || { totalSum: 0, count: 0 };
+        const average = ps.count > 0 ? Math.round((ps.totalSum / ps.count) * 100) / 100 : 0;
+        return {
+            projectId: project.id,
+            projectName: project.name,
+            projectTeam: project.team || '',
+            averageScore: average,
+            maxScore: methodCriterion.maxScore,
+            jurorCount: ps.count,
+            totalJurors: data.jurors.length
+        };
+    });
+
+    rankings.sort((a, b) => b.averageScore - a.averageScore);
+    return rankings;
+}
+
 
 // ==================== AUTH ====================
 app.post('/api/auth/login', async (req, res) => {
@@ -473,7 +550,8 @@ app.put('/api/settings', async (req, res) => {
                 label: typeof c.label === 'string' ? c.label.trim() : `Soru ${i+1}`,
                 maxScore: typeof c.maxScore === 'number' ? c.maxScore : (typeof c.maxScore === 'string' ? parseInt(c.maxScore) || 10 : 10),
                 isBonus: typeof c.isBonus === 'boolean' ? c.isBonus : false,
-                description: typeof c.description === 'string' ? c.description.trim() : ""
+                description: typeof c.description === 'string' ? c.description.trim() : "",
+                isMethod: typeof c.isMethod === 'boolean' ? c.isMethod : false
             };
             if (c.subBonus) {
                 criterion.subBonus = {
@@ -484,6 +562,18 @@ app.put('/api/settings', async (req, res) => {
                 };
             }
             return criterion;
+        });
+
+        // Ensure at most one isMethod is true
+        let hasMethod = false;
+        data.settings.criteria.forEach(c => {
+            if (c.isMethod) {
+                if (hasMethod) {
+                    c.isMethod = false;
+                } else {
+                    hasMethod = true;
+                }
+            }
         });
     }
 
@@ -587,12 +677,54 @@ app.post('/api/settings/reset/all', async (req, res) => {
 app.get('/api/presentation/status', async (req, res) => {
     const data = await readData();
     const rankings = calculateRankings(data);
+    const methodRankings = calculateMethodRankings(data);
+
+    // Auto-update methodRevealed if reveal time has passed
+    let didChange = false;
+    if (data.presentation.methodRevealStarted && !data.presentation.methodRevealed && data.presentation.methodRevealTimestamp) {
+        if (Date.now() >= data.presentation.methodRevealTimestamp) {
+            data.presentation.methodRevealed = true;
+            didChange = true;
+        }
+    }
+
+    if (didChange) {
+        await writeData(data);
+    }
+
+    const methodCriterion = data.settings.criteria.find(c => c.isMethod === true);
+
     res.json({
         presentation: data.presentation,
         rankings: rankings,
+        methodRankings: methodRankings,
+        methodCriterion: methodCriterion ? {
+            id: methodCriterion.id,
+            label: methodCriterion.label,
+            maxScore: methodCriterion.maxScore
+        } : null,
         settings: data.settings,
         serverTime: Date.now()
     });
+});
+
+app.post('/api/presentation/reveal-method', async (req, res) => {
+    const data = await readData();
+    data.presentation.methodRevealStarted = true;
+    data.presentation.methodRevealed = false;
+    const countdownSec = data.settings.countdownSeconds || 10;
+    data.presentation.methodRevealTimestamp = Date.now() + (countdownSec * 1000);
+    await writeData(data);
+    res.json({ success: true, presentation: data.presentation });
+});
+
+app.post('/api/presentation/reset-method', async (req, res) => {
+    const data = await readData();
+    data.presentation.methodRevealStarted = false;
+    data.presentation.methodRevealed = false;
+    data.presentation.methodRevealTimestamp = null;
+    await writeData(data);
+    res.json({ success: true, presentation: data.presentation });
 });
 
 app.post('/api/presentation/reveal', async (req, res) => {
@@ -734,6 +866,14 @@ app.get('/juri', (req, res) => {
 
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/metot', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'metot.html'));
+});
+
+app.get('/method', (req, res) => {
+    res.redirect('/metot');
 });
 
 // ==================== START SERVER ====================

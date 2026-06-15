@@ -582,6 +582,24 @@
     flex-shrink: 0;
 }
 
+.score-badge--method {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    background: rgba(0, 113, 227, 0.12);
+    color: #0071e3;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    width: auto;
+    height: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 0.4rem;
+}
+
 /* Bonus Toggle Switch */
 .bonus-toggle-row {
     margin-top: 0.5rem;

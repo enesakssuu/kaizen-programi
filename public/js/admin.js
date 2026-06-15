@@ -63,6 +63,8 @@
     const $timerStartBtn = document.getElementById('timer-start-btn');
     const $timerPauseBtn = document.getElementById('timer-pause-btn');
     const $timerResetBtn = document.getElementById('timer-reset-btn');
+    const $revealMethodBtn = document.getElementById('reveal-method-btn');
+    const $resetMethodBtn = document.getElementById('reset-method-btn');
 
     // Settings
     const $countdownInput = document.getElementById('countdown-seconds-input');
@@ -127,6 +129,8 @@
         $timerStartBtn.addEventListener('click', () => controlTimer('start'));
         $timerPauseBtn.addEventListener('click', () => controlTimer('pause'));
         $timerResetBtn.addEventListener('click', () => controlTimer('reset'));
+        if ($revealMethodBtn) $revealMethodBtn.addEventListener('click', revealMethod);
+        if ($resetMethodBtn) $resetMethodBtn.addEventListener('click', resetMethod);
 
         // Settings
         $saveCountdownBtn.addEventListener('click', saveCountdown);
@@ -721,6 +725,30 @@
         }
     }
 
+    async function revealMethod() {
+        try {
+            const res = await fetch('/api/presentation/reveal-method', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Metot Ödülü açıklaması başlatıldı!', 'success');
+            } else {
+                showToast(data.message || 'Hata oluştu', 'error');
+            }
+        } catch (err) {
+            showToast('Bağlantı hatası', 'error');
+        }
+    }
+
+    async function resetMethod() {
+        if (!confirm('Metot Ödülü sunum durumunu sıfırlamak istediğinizden emin misiniz?')) return;
+        try {
+            await fetch('/api/presentation/reset-method', { method: 'POST' });
+            showToast('Metot Ödülü sunumu sıfırlandı.', 'info');
+        } catch (err) {
+            showToast('Sıfırlama hatası', 'error');
+        }
+    }
+
     // ==================== SETTINGS ====================
     async function loadSettings() {
         try {
@@ -779,9 +807,14 @@
                 `;
             }
  
+            const isMethodChecked = c.isMethod ? 'checked' : '';
             card.innerHTML = `
                 <div class="criterion-card-header">
                     <span class="criterion-card-title">${index + 1}. Değerlendirme Kriteri</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto; margin-right: 1rem;">
+                        <input type="radio" name="method-criterion-select" id="method-select-${index}" class="q-is-method" ${isMethodChecked} data-index="${index}">
+                        <label for="method-select-${index}" style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); cursor:pointer;">Metot Ödülü Sorusu</label>
+                    </div>
                     <button type="button" class="btn btn-danger btn-sm question-delete-btn" data-index="${index}">Sil</button>
                 </div>
                 <div class="criterion-card-body">
@@ -824,13 +857,15 @@
             const label = card.querySelector('.q-label').value.trim();
             const maxScore = parseInt(card.querySelector('.q-max-score').value) || 10;
             const description = card.querySelector('.q-desc').value.trim();
+            const isMethod = card.querySelector('.q-is-method') ? card.querySelector('.q-is-method').checked : false;
             
             const criterion = {
                 id: `c${idx + 1}`,
                 label: label,
                 maxScore: maxScore,
                 isBonus: false,
-                description: description
+                description: description,
+                isMethod: isMethod
             };
             
             // Check if there was subBonus inputs
