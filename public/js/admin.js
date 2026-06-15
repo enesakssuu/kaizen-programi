@@ -401,7 +401,7 @@
             else if (rank === 2) rankClass = 'rank-2';
             else if (rank === 3) rankClass = 'rank-3';
 
-            const maxScore = r.maxScore || 60;
+            const maxScore = r.maxScore || 115;
             const percent = (r.averageScore / maxScore) * 100;
 
             const row = document.createElement('tr');
