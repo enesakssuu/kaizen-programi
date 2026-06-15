@@ -162,8 +162,7 @@ function ensureDefaults(data) {
         settings: {
             ...defaults.settings,
             ...(data.settings || {}),
-            // Always use default criteria (not user-editable via API)
-            criteria: defaults.settings.criteria,
+            criteria: Array.isArray(data.settings && data.settings.criteria) ? data.settings.criteria : defaults.settings.criteria,
             sounds: {
                 ...defaults.settings.sounds,
                 ...((data.settings && data.settings.sounds) || {})
@@ -441,7 +440,7 @@ app.get('/api/questions', async (req, res) => {
 // ==================== SETTINGS ====================
 app.put('/api/settings', async (req, res) => {
     const data = await readData();
-    const { countdownSeconds, adminPassword, sounds, winnerRevealSeconds } = req.body;
+    const { countdownSeconds, adminPassword, sounds, winnerRevealSeconds, criteria } = req.body;
  
     if (countdownSeconds && countdownSeconds >= 3 && countdownSeconds <= 30) {
         data.settings.countdownSeconds = parseInt(countdownSeconds);
@@ -465,6 +464,27 @@ app.put('/api/settings', async (req, res) => {
             revealEnabled: typeof sounds.revealEnabled === 'boolean' ? sounds.revealEnabled : true,
             revealUrl: typeof sounds.revealUrl === 'string' ? sounds.revealUrl.trim() : (data.settings.sounds?.revealUrl || "")
         };
+    }
+
+    if (criteria && Array.isArray(criteria)) {
+        data.settings.criteria = criteria.map((c, i) => {
+            const criterion = {
+                id: c.id || `c${i+1}`,
+                label: typeof c.label === 'string' ? c.label.trim() : `Soru ${i+1}`,
+                maxScore: typeof c.maxScore === 'number' ? c.maxScore : (typeof c.maxScore === 'string' ? parseInt(c.maxScore) || 10 : 10),
+                isBonus: typeof c.isBonus === 'boolean' ? c.isBonus : false,
+                description: typeof c.description === 'string' ? c.description.trim() : ""
+            };
+            if (c.subBonus) {
+                criterion.subBonus = {
+                    id: c.subBonus.id || `${criterion.id}b`,
+                    label: typeof c.subBonus.label === 'string' ? c.subBonus.label.trim() : "Bonus",
+                    maxScore: typeof c.subBonus.maxScore === 'number' ? c.subBonus.maxScore : (typeof c.subBonus.maxScore === 'string' ? parseInt(c.subBonus.maxScore) || 5 : 5),
+                    description: typeof c.subBonus.description === 'string' ? c.subBonus.description.trim() : ""
+                };
+            }
+            return criterion;
+        });
     }
 
     await writeData(data);
@@ -570,7 +590,7 @@ app.get('/api/presentation/status', async (req, res) => {
     res.json({
         presentation: data.presentation,
         rankings: rankings,
-        settings: { countdownSeconds: data.settings.countdownSeconds },
+        settings: data.settings,
         serverTime: Date.now()
     });
 });

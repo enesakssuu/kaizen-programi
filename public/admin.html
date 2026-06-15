@@ -243,11 +243,6 @@
                                     <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.3rem;">Dikkat</p>
                                     <p style="font-size: 0.8rem; color: var(--text-secondary);">Sunumu sıfırlamak izleyici ekranındaki tüm açıklanmış sıraları temizler.</p>
                                 </div>
-                                <div style="padding: 1rem; background: rgba(0, 113, 227, 0.05); border-radius: var(--radius-lg); border: 1px solid rgba(0, 113, 227, 0.1);">
-                                    <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.3rem;">İzleyici Ekranı</p>
-                                    <p style="font-size: 0.8rem; color: var(--text-secondary);">İzleyici ekranını açmak için tarayıcıda şu adrese gidin:</p>
-                                    <p style="font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 0.3rem;">http://localhost:3000</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -320,12 +315,12 @@
 
                         <!-- Questions -->
                         <div class="setting-card" style="grid-column: 1 / -1;">
-                            <h3 class="setting-card-title">Değerlendirme Soruları</h3>
+                            <h3 class="setting-card-title">Değerlendirme Soruları & Açıklamaları</h3>
                             <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
-                                Jüri üyelerinin her proje için cevaplayacağı soruları düzenleyin, ekleyin veya çıkartın.
+                                Jüri üyelerinin her proje için cevaplayacağı soruları, açıklamaları (altındaki rehber kısımları) ve puan ağırlıklarını düzenleyin.
                             </p>
                             <div class="questions-list" id="questions-list">
-                                <!-- Dynamically populated -->
+                                <!-- Dynamically populated with criterion cards -->
                             </div>
                             <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
                                 <button type="button" class="btn btn-ghost btn-sm" id="add-question-btn">Yeni Soru Ekle</button>

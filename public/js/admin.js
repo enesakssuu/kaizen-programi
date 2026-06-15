@@ -727,74 +727,148 @@
             const res = await fetch('/api/presentation/status');
             const data = await res.json();
             settings = data.settings;
-
+ 
             $countdownInput.value = settings.countdownSeconds || 10;
             if (document.getElementById('winner-reveal-seconds-input')) {
                 document.getElementById('winner-reveal-seconds-input').value = settings.winnerRevealSeconds || 10;
             }
-
+ 
             // Populate sound settings
             if (settings.sounds) {
                 document.getElementById('sound-countdown-enabled').checked = settings.sounds.countdownEnabled !== false;
                 document.getElementById('sound-reveal-enabled').checked = settings.sounds.revealEnabled !== false;
             }
-
-            const qRes = await fetch('/api/questions');
-            const questions = await qRes.json();
-            renderQuestions(questions);
+ 
+            const cRes = await fetch('/api/criteria');
+            const criteriaList = await cRes.json();
+            renderQuestions(criteriaList);
         } catch (err) {
             showToast('Ayarlar yüklenemedi', 'error');
         }
     }
-
-    function renderQuestions(questions) {
-        currentQuestions = [...questions];
+ 
+    function renderQuestions(criteriaList) {
+        currentQuestions = JSON.parse(JSON.stringify(criteriaList || []));
         $questionsList.innerHTML = '';
-
-        currentQuestions.forEach((q, index) => {
-            const item = document.createElement('div');
-            item.className = 'question-item';
-            item.innerHTML = `
-                <span class="question-number">${index + 1}.</span>
-                <input type="text" class="form-input question-input" value="${escapeHtml(q)}" data-index="${index}">
-                <button type="button" class="btn btn-danger btn-sm question-delete-btn" data-index="${index}">Sil</button>
+ 
+        currentQuestions.forEach((c, index) => {
+            const card = document.createElement('div');
+            card.className = 'criterion-card';
+            card.dataset.index = index;
+ 
+            let bonusHtml = '';
+            if (c.subBonus) {
+                bonusHtml = `
+                    <div class="criterion-bonus-box">
+                        <span class="criterion-bonus-title">Alt Bonus Kriteri</span>
+                        <div class="criterion-bonus-body">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label" style="font-size:0.75rem;">Bonus Soru / Kriter Başlığı</label>
+                                <input type="text" class="form-input q-bonus-label" value="${escapeHtml(c.subBonus.label)}" data-index="${index}">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label" style="font-size:0.75rem;">Bonus Puanı</label>
+                                <input type="number" class="form-input q-bonus-max-score" value="${c.subBonus.maxScore}" data-index="${index}" min="1" max="50">
+                            </div>
+                            <div class="form-group criterion-card-desc-group" style="margin-bottom:0; margin-top:0.5rem;">
+                                <label class="form-label" style="font-size:0.75rem;">Bonus Açıklaması</label>
+                                <textarea class="form-input q-bonus-desc" rows="1" data-index="${index}">${escapeHtml(c.subBonus.description || '')}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+ 
+            card.innerHTML = `
+                <div class="criterion-card-header">
+                    <span class="criterion-card-title">${index + 1}. Değerlendirme Kriteri</span>
+                    <button type="button" class="btn btn-danger btn-sm question-delete-btn" data-index="${index}">Sil</button>
+                </div>
+                <div class="criterion-card-body">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Kriter Başlığı (Soru)</label>
+                        <input type="text" class="form-input q-label" value="${escapeHtml(c.label)}" data-index="${index}">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Maks. Puan</label>
+                        <input type="number" class="form-input q-max-score" value="${c.maxScore}" data-index="${index}" min="1" max="100">
+                    </div>
+                    <div class="form-group criterion-card-desc-group" style="margin-bottom:0; margin-top:0.5rem;">
+                        <label class="form-label">Açıklama (Jüri ekranında sorunun altında çıkacak rehber metin)</label>
+                        <textarea class="form-input q-desc" rows="2" data-index="${index}">${escapeHtml(c.description || '')}</textarea>
+                    </div>
+                </div>
+                ${bonusHtml}
             `;
-            $questionsList.appendChild(item);
+            $questionsList.appendChild(card);
         });
-
+ 
         // Bind dynamic delete events
         const deleteBtns = $questionsList.querySelectorAll('.question-delete-btn');
         deleteBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const idx = parseInt(this.dataset.index);
-                // Collect current values from inputs to not lose user changes elsewhere
                 saveCurrentQuestionsFromInputs();
                 currentQuestions.splice(idx, 1);
                 renderQuestions(currentQuestions);
             });
         });
     }
-
+ 
     function saveCurrentQuestionsFromInputs() {
-        const inputs = $questionsList.querySelectorAll('.question-input');
+        const cards = $questionsList.querySelectorAll('.criterion-card');
         currentQuestions = [];
-        inputs.forEach(input => {
-            currentQuestions.push(input.value.trim());
+        
+        cards.forEach(card => {
+            const idx = parseInt(card.dataset.index);
+            const label = card.querySelector('.q-label').value.trim();
+            const maxScore = parseInt(card.querySelector('.q-max-score').value) || 10;
+            const description = card.querySelector('.q-desc').value.trim();
+            
+            const criterion = {
+                id: `c${idx + 1}`,
+                label: label,
+                maxScore: maxScore,
+                isBonus: false,
+                description: description
+            };
+            
+            // Check if there was subBonus inputs
+            const bonusLabelInput = card.querySelector('.q-bonus-label');
+            const bonusMaxScoreInput = card.querySelector('.q-bonus-max-score');
+            const bonusDescInput = card.querySelector('.q-bonus-desc');
+            
+            if (bonusLabelInput && bonusMaxScoreInput && bonusDescInput) {
+                criterion.subBonus = {
+                    id: `c${idx + 1}b`,
+                    label: bonusLabelInput.value.trim(),
+                    maxScore: parseInt(bonusMaxScoreInput.value) || 5,
+                    description: bonusDescInput.value.trim()
+                };
+            }
+            
+            currentQuestions.push(criterion);
         });
     }
-
+ 
     function addQuestionRow() {
         saveCurrentQuestionsFromInputs();
-        currentQuestions.push('');
+        currentQuestions.push({
+            id: `c${currentQuestions.length + 1}`,
+            label: '',
+            maxScore: 10,
+            isBonus: false,
+            description: ''
+        });
         renderQuestions(currentQuestions);
     }
-
+ 
     async function saveCountdown() {
         const seconds = parseInt($countdownInput.value);
         if (isNaN(seconds) || seconds < 3 || seconds > 30) {
             return showToast('Geri sayım süresi 3-30 saniye arasında olmalıdır', 'error');
         }
-
+ 
         let winnerSeconds = 10;
         const $winnerSecInput = document.getElementById('winner-reveal-seconds-input');
         if ($winnerSecInput) {
@@ -803,7 +877,7 @@
                 return showToast('Birincinin kalma süresi 3-120 saniye arasında olmalıdır', 'error');
             }
         }
-
+ 
         try {
             const res = await fetch('/api/settings', {
                 method: 'PUT',
@@ -813,7 +887,7 @@
                     winnerRevealSeconds: winnerSeconds
                 })
             });
-
+ 
             const data = await res.json();
             if (data.success) {
                 showToast('Süre ayarları güncellendi', 'success');
@@ -822,18 +896,18 @@
             showToast('Kaydetme hatası', 'error');
         }
     }
-
+ 
     async function savePassword() {
         const password = $adminNewPassword.value.trim();
         if (!password) return showToast('Şifre boş olamaz', 'error');
-
+ 
         try {
             const res = await fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ adminPassword: password })
             });
-
+ 
             const data = await res.json();
             if (data.success) {
                 $adminNewPassword.value = '';
@@ -843,28 +917,28 @@
             showToast('Kaydetme hatası', 'error');
         }
     }
-
+ 
     async function saveQuestions() {
         saveCurrentQuestionsFromInputs();
-
+ 
         // Filter out empty questions
-        const filtered = currentQuestions.filter(q => q && q.trim().length > 0);
-
+        const filtered = currentQuestions.filter(c => c.label && c.label.trim().length > 0);
+ 
         if (filtered.length === 0) {
             return showToast('En az bir soru eklemelisiniz', 'error');
         }
-
+ 
         try {
             const res = await fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ questions: filtered })
+                body: JSON.stringify({ criteria: filtered })
             });
-
+ 
             const data = await res.json();
             if (data.success) {
-                showToast('Sorular güncellendi', 'success');
-                renderQuestions(data.settings.questions);
+                showToast('Sorular ve açıklamalar güncellendi', 'success');
+                renderQuestions(data.settings.criteria);
             }
         } catch (err) {
             showToast('Kaydetme hatası', 'error');
