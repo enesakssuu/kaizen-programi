@@ -235,11 +235,6 @@
                 </div>
                 <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>
                 <div class="score-slider-container">
-                    <div class="score-slider-labels">
-                        <span>0</span>
-                        <span>${Math.round(criterion.maxScore / 2)}</span>
-                        <span>${criterion.maxScore}</span>
-                    </div>
                     <div class="score-slider-row">
                         <input type="range" class="score-slider" min="0" max="${criterion.maxScore}" value="${mainExisting}"
                                data-slot-index="${mainSlotIndex}" id="score-slider-${mainSlotIndex}">
