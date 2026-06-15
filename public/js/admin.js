@@ -784,6 +784,7 @@
             const data = await res.json();
             if (data.success) {
                 showToast('Metot Ödülü açıklaması başlatıldı!', 'success');
+                await loadPresentationStatus();
             } else {
                 showToast(data.message || 'Hata oluştu', 'error');
             }
@@ -795,8 +796,12 @@
     async function resetMethod() {
         if (!confirm('Metot Ödülü sunum durumunu sıfırlamak istediğinizden emin misiniz?')) return;
         try {
-            await fetch('/api/presentation/reset-method', { method: 'POST' });
-            showToast('Metot Ödülü sunumu sıfırlandı.', 'info');
+            const res = await fetch('/api/presentation/reset-method', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Metot Ödülü sunumu sıfırlandı.', 'info');
+                await loadPresentationStatus();
+            }
         } catch (err) {
             showToast('Sıfırlama hatası', 'error');
         }

@@ -714,6 +714,7 @@ app.post('/api/presentation/reveal-method', async (req, res) => {
     data.presentation.methodRevealed = false;
     const countdownSec = data.settings.countdownSeconds || 10;
     data.presentation.methodRevealTimestamp = Date.now() + (countdownSec * 1000);
+    data.presentation.mode = 'method';
     await writeData(data);
     res.json({ success: true, presentation: data.presentation });
 });
