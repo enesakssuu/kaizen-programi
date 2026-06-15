@@ -62,6 +62,7 @@
     const $modeTimerBtn = document.getElementById('mode-timer-btn');
     const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
     const $modeWelcomeBtn = document.getElementById('mode-welcome-btn');
+    const $modeMethodBtn = document.getElementById('mode-method-btn');
     const $timerTargetInput = document.getElementById('timer-target-input');
     const $timerSetBtn = document.getElementById('timer-set-btn');
     const $adminTimerDisplay = document.getElementById('admin-timer-display');
@@ -129,6 +130,9 @@
         $modeWaitingBtn.addEventListener('click', () => changePresentationMode('waiting'));
         if ($modeWelcomeBtn) {
             $modeWelcomeBtn.addEventListener('click', () => changePresentationMode('welcome'));
+        }
+        if ($modeMethodBtn) {
+            $modeMethodBtn.addEventListener('click', () => changePresentationMode('method'));
         }
         $timerSetBtn.addEventListener('click', setTimerDuration);
         $timerStartBtn.addEventListener('click', () => controlTimer('start'));
@@ -593,6 +597,7 @@
         if ($modeWelcomeBtn) $modeWelcomeBtn.className = mode === 'welcome' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
         if ($modeTimerBtn) $modeTimerBtn.className = mode === 'timer' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
         if ($modeWaitingBtn) $modeWaitingBtn.className = mode === 'waiting' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
+        if ($modeMethodBtn) $modeMethodBtn.className = mode === 'method' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
     }
 
     async function changePresentationMode(mode) {
@@ -609,6 +614,7 @@
                 let modeText = 'Karşılama';
                 if (mode === 'timer') modeText = 'Sayaç';
                 else if (mode === 'waiting') modeText = 'Bekleme';
+                else if (mode === 'method') modeText = 'Metot Ödülü';
                 showToast(`Ekran modu güncellendi: ${modeText}`, 'success');
             }
         } catch (err) {

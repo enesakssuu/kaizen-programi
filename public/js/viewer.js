@@ -22,6 +22,8 @@
         revealEnabled: true,
         revealUrl: ""
     };
+    let isMethodCountdownActive = false;
+    let isMethodRevealed = false;
 
     // ==================== DOM ELEMENTS ====================
     const $particles = document.getElementById('particles');
@@ -47,6 +49,14 @@
     const $rankingsSection = document.getElementById('rankings-section');
     const $confettiContainer = document.getElementById('confetti-container');
     const $viewerStage = document.getElementById('viewer-stage');
+    
+    const $methodState = document.getElementById('method-state');
+    const $rankingsRevealCard = document.getElementById('rankings-reveal-card');
+    const $methodRevealCard = document.getElementById('method-reveal-card');
+    const $methodRevealProjectName = document.getElementById('method-reveal-project-name');
+    const $methodRevealProjectTeam = document.getElementById('method-reveal-project-team');
+    const $countdownRankLabel = document.querySelector('.countdown-rank-label');
+    const $countdownSubtext = document.querySelector('.countdown-subtext');
 
     const CIRCUMFERENCE = 2 * Math.PI * 120; // ~753.98
 
@@ -154,6 +164,17 @@
         }
         presentationMode = data.presentation?.mode || 'timer';
         
+        // Check if we are in method mode
+        if (presentationMode === 'method') {
+            handleMethodStatusUpdate(data);
+            return;
+        }
+
+        // If we were in method mode but just switched back to normal
+        if (isMethodCountdownActive || isMethodRevealed) {
+            handleMethodReset();
+        }
+
         const revealed = data.presentation?.revealedRanks || [];
         
         // Handle reset
@@ -202,6 +223,138 @@
             }
         }
         updateWaitingVisibility();
+    }
+
+    function handleMethodStatusUpdate(data) {
+        const presentation = data.presentation || {};
+        const methodRankings = data.methodRankings || [];
+        
+        // If method reveal has not started, reset to waiting
+        if (!presentation.methodRevealStarted) {
+            handleMethodReset();
+            return;
+        }
+
+        const winner = methodRankings[0];
+        if (!winner) {
+            return; // No projects/scores yet
+        }
+
+        const now = Date.now() + serverTimeOffset;
+        const remaining = Math.max(0, Math.floor((presentation.methodRevealTimestamp - now) / 1000));
+
+        if (remaining > 0 && !presentation.methodRevealed) {
+            // Countdown phase
+            if (!isAnimating) {
+                isAnimating = true;
+                startMethodCountdown(remaining, countdownSeconds, winner);
+            }
+        } else {
+            // Reveal phase
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            if (isAnimating && isMethodCountdownActive) {
+                isAnimating = false;
+                isMethodCountdownActive = false;
+                hideOverlay($countdownOverlay);
+                showMethodWinner(winner);
+            } else if (!isAnimating && !isMethodRevealed) {
+                showMethodWinner(winner);
+            }
+        }
+        updateWaitingVisibility();
+    }
+
+    function handleMethodReset() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        if (revealTimeout) {
+            clearTimeout(revealTimeout);
+            revealTimeout = null;
+        }
+        isAnimating = false;
+        isMethodCountdownActive = false;
+        isMethodRevealed = false;
+
+        hideOverlay($countdownOverlay);
+        hideOverlay($revealOverlay);
+        if ($methodRevealCard) $methodRevealCard.classList.add('hidden');
+        if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
+        $confettiContainer.classList.add('hidden');
+        $confettiContainer.innerHTML = '';
+        updateWaitingVisibility();
+    }
+
+    function startMethodCountdown(initialRemaining, totalDuration, winner) {
+        isMethodCountdownActive = true;
+        
+        if ($methodState) $methodState.classList.add('hidden');
+        $waitingState.classList.add('hidden');
+        if ($welcomeState) $welcomeState.classList.add('hidden');
+        
+        showOverlay($countdownOverlay);
+        hideOverlay($revealOverlay);
+
+        if ($countdownRankLabel) {
+            $countdownRankLabel.innerHTML = 'Açıklanacak Ödül: <span style="color: #00c6ff;" id="countdown-rank-text">METOT ÖDÜLÜ</span>';
+        }
+        if ($countdownSubtext) {
+            $countdownSubtext.textContent = 'Metot Ödülü hazırlanıyor...';
+        }
+
+        // Reset ring
+        $ringProgress.style.transition = 'none';
+        $ringProgress.style.strokeDasharray = CIRCUMFERENCE;
+        $ringProgress.style.strokeDashoffset = '0';
+
+        updateCountdownDisplay(initialRemaining, totalDuration);
+        playTick();
+  
+        void $ringProgress.offsetWidth;
+        $ringProgress.style.transition = 'stroke-dashoffset 1s linear';
+  
+        let remaining = initialRemaining;
+        countdownInterval = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                isAnimating = false;
+                isMethodCountdownActive = false;
+                hideOverlay($countdownOverlay);
+                showMethodWinner(winner);
+            } else {
+                updateCountdownDisplay(remaining, totalDuration);
+                playTick();
+            }
+        }, 1000);
+    }
+
+    function showMethodWinner(winner) {
+        isMethodRevealed = true;
+        
+        if ($methodState) $methodState.classList.add('hidden');
+        $waitingState.classList.add('hidden');
+        if ($welcomeState) $welcomeState.classList.add('hidden');
+        
+        showOverlay($revealOverlay);
+        
+        if ($rankingsRevealCard) $rankingsRevealCard.classList.add('hidden');
+        if ($methodRevealCard) $methodRevealCard.classList.remove('hidden');
+
+        if ($methodRevealProjectName) {
+            $methodRevealProjectName.textContent = winner.projectName;
+        }
+        if ($methodRevealProjectTeam) {
+            $methodRevealProjectTeam.textContent = winner.projectTeam || 'Ekip Belirtilmemiş';
+        }
+
+        playReveal();
+        launchConfetti(1);
     }
 
     function syncTimer(timer) {
@@ -267,9 +420,14 @@
         hideOverlay($countdownOverlay);
         hideOverlay($revealOverlay);
         if ($welcomeState) $welcomeState.classList.add('hidden');
+        if ($methodState) $methodState.classList.add('hidden');
+        if ($methodRevealCard) $methodRevealCard.classList.add('hidden');
+        if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
         $confettiContainer.classList.add('hidden');
         $confettiContainer.innerHTML = '';
         isAnimating = false;
+        isMethodCountdownActive = false;
+        isMethodRevealed = false;
         updateWaitingVisibility();
     }
 
@@ -278,10 +436,16 @@
         // Hide waiting and welcome states, show countdown
         $waitingState.classList.add('hidden');
         if ($welcomeState) $welcomeState.classList.add('hidden');
+        if ($methodState) $methodState.classList.add('hidden');
         showOverlay($countdownOverlay);
         hideOverlay($revealOverlay);
 
-        $countdownRankText.textContent = '#' + rank;
+        if ($countdownRankLabel) {
+            $countdownRankLabel.innerHTML = 'Açıklanacak Sıra: <span id="countdown-rank-text">#' + rank + '</span>';
+        }
+        if ($countdownSubtext) {
+            $countdownSubtext.textContent = 'Sonuç hazırlanıyor';
+        }
 
         // Reset ring
         $ringProgress.style.transition = 'none';
@@ -325,6 +489,9 @@
         showOverlay($revealOverlay);
         playReveal();
  
+        if ($methodRevealCard) $methodRevealCard.classList.add('hidden');
+        if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
+
         // Set rank badge class
         let rankClass = 'rank-default';
         if (rank === 1) rankClass = 'rank-gold';
@@ -411,6 +578,25 @@
 
     // ==================== UI HELPERS ====================
     function updateWaitingVisibility() {
+        // If we are in method mode
+        if (presentationMode === 'method') {
+            $timerState.classList.add('hidden');
+            $waitingState.classList.add('hidden');
+            if ($welcomeState) $welcomeState.classList.add('hidden');
+            $rankingsSection.classList.add('hidden');
+            
+            if (isAnimating || isMethodCountdownActive || isMethodRevealed) {
+                if ($methodState) $methodState.classList.add('hidden');
+            } else {
+                if ($methodState) $methodState.classList.remove('hidden');
+            }
+            $viewerStage.classList.add('timer-only');
+            return;
+        }
+
+        // Ensure method state is hidden in non-method modes
+        if ($methodState) $methodState.classList.add('hidden');
+
         if (isAnimating || revealedProjects.length > 0) {
             $waitingState.classList.add('hidden');
             $timerState.classList.add('hidden');
