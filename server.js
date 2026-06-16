@@ -111,12 +111,14 @@ function getDefaultData() {
                     options: [
                         "İş gücü kazancı",
                         "Zaman tasarrufu",
-                        "Maliyet avantajı",
+                        "Makine veya cihaz verimliliği",
+                        "Malzeme tasarrufu",
                         "Enerji tasarrufu",
-                        "Ergonomi",
+                        "Ergonomik iyileştirme",
                         "Dijital dönüşüm",
-                        "Dokümantasyon",
-                        "Makine verimliliği"
+                        "Dokümantasyon ve standardizasyon",
+                        "Bilgi Akışı / İletişim / Koordinasyon",
+                        "Maliyet"
                     ]
                 },
                 {
@@ -148,6 +150,24 @@ function ensureDefaults(data) {
     const defaults = getDefaultData();
     const presentation = data.presentation || {};
     const timer = presentation.timer || {};
+
+    // Validate and migrate criteria if needed
+    let dbCriteria = data.settings && data.settings.criteria;
+    let validCriteria = true;
+    if (!Array.isArray(dbCriteria) || dbCriteria.length !== defaults.settings.criteria.length) {
+        validCriteria = false;
+    } else {
+        // Check if any criterion is missing weight, maxScore or has wrong properties
+        for (let i = 0; i < dbCriteria.length; i++) {
+            if (dbCriteria[i].weight === undefined || dbCriteria[i].maxScore === undefined || dbCriteria[i].type !== defaults.settings.criteria[i].type) {
+                validCriteria = false;
+                break;
+            }
+        }
+    }
+
+    const criteriaToUse = validCriteria ? dbCriteria : defaults.settings.criteria;
+
     return {
         projects: Array.isArray(data.projects) ? data.projects : defaults.projects,
         jurors: Array.isArray(data.jurors) ? data.jurors : defaults.jurors,
@@ -171,7 +191,7 @@ function ensureDefaults(data) {
         settings: {
             ...defaults.settings,
             ...(data.settings || {}),
-            criteria: Array.isArray(data.settings && data.settings.criteria) ? data.settings.criteria : defaults.settings.criteria,
+            criteria: criteriaToUse,
             sounds: {
                 ...defaults.settings.sounds,
                 ...((data.settings && data.settings.sounds) || {})
@@ -444,11 +464,11 @@ app.post('/api/scores', async (req, res) => {
             // Calculate checkbox score: count -> 1-5 scale
             const count = s.length;
             let level;
-            if (count <= 0) level = 0;
-            else if (count <= 2) level = 1;
-            else if (count <= 3) level = 2;
-            else if (count <= 4) level = 3;
-            else if (count <= 5) level = 4;
+            if (count === 0) level = 0;
+            else if (count === 1) level = 1;
+            else if (count === 2) level = 2;
+            else if (count === 3) level = 3;
+            else if (count === 4 || count === 5) level = 4;
             else level = 5;
             total += level * (c.weight || 4);
         } else {

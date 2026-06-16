@@ -503,6 +503,10 @@
         $revealProjectName.textContent = project.projectName;
         $revealProjectTeam.textContent = project.projectTeam || '';
         $revealScoreValue.textContent = project.averageScore.toFixed(1);
+        const $revealScoreMax = document.getElementById('reveal-score-max');
+        if ($revealScoreMax) {
+            $revealScoreMax.textContent = '/' + (project.maxScore || 100);
+        }
 
         // Confetti for top 3
         if (rank <= 3) {
