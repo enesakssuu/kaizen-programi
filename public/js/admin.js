@@ -842,30 +842,10 @@
             card.className = 'criterion-card';
             card.dataset.index = index;
  
-            let bonusHtml = '';
-            if (c.subBonus) {
-                bonusHtml = `
-                    <div class="criterion-bonus-box">
-                        <span class="criterion-bonus-title">Alt Bonus Kriteri</span>
-                        <div class="criterion-bonus-body">
-                            <div class="form-group" style="margin-bottom:0;">
-                                <label class="form-label" style="font-size:0.75rem;">Bonus Soru / Kriter Başlığı</label>
-                                <input type="text" class="form-input q-bonus-label" value="${escapeHtml(c.subBonus.label)}" data-index="${index}">
-                            </div>
-                            <div class="form-group" style="margin-bottom:0;">
-                                <label class="form-label" style="font-size:0.75rem;">Bonus Puanı</label>
-                                <input type="number" class="form-input q-bonus-max-score" value="${c.subBonus.maxScore}" data-index="${index}" min="1" max="50">
-                            </div>
-                            <div class="form-group criterion-card-desc-group" style="margin-bottom:0; margin-top:0.5rem;">
-                                <label class="form-label" style="font-size:0.75rem;">Bonus Açıklaması</label>
-                                <textarea class="form-input q-bonus-desc" rows="1" data-index="${index}">${escapeHtml(c.subBonus.description || '')}</textarea>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
- 
             const isMethodChecked = c.isMethod ? 'checked' : '';
+            const isRadio = c.type !== 'checkbox';
+            const optionsText = (c.options || []).join('\n');
+
             card.innerHTML = `
                 <div class="criterion-card-header">
                     <span class="criterion-card-title">${index + 1}. Değerlendirme Kriteri</span>
@@ -880,18 +860,56 @@
                         <label class="form-label">Kriter Başlığı (Soru)</label>
                         <input type="text" class="form-input q-label" value="${escapeHtml(c.label)}" data-index="${index}">
                     </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Maks. Puan</label>
-                        <input type="number" class="form-input q-max-score" value="${c.maxScore}" data-index="${index}" min="1" max="100">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Tür</label>
+                            <select class="form-input q-type" data-index="${index}">
+                                <option value="radio" ${isRadio ? 'selected' : ''}>Radio (1-5)</option>
+                                <option value="checkbox" ${!isRadio ? 'selected' : ''}>Checkbox (Çoklu)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Ağırlık Çarpanı</label>
+                            <input type="number" class="form-input q-weight" value="${c.weight || 1}" data-index="${index}" min="1" max="20">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Maks. Puan</label>
+                            <input type="number" class="form-input q-max-score" value="${c.maxScore}" data-index="${index}" min="1" max="100" readonly 
+                                   style="background: #eee; cursor: not-allowed;" title="Otomatik hesaplanır (ağırlık × 5)">
+                        </div>
                     </div>
                     <div class="form-group criterion-card-desc-group" style="margin-bottom:0; margin-top:0.5rem;">
                         <label class="form-label">Açıklama (Jüri ekranında sorunun altında çıkacak rehber metin)</label>
                         <textarea class="form-input q-desc" rows="2" data-index="${index}">${escapeHtml(c.description || '')}</textarea>
                     </div>
+                    <div class="form-group q-options-group" style="margin-top:0.5rem; ${isRadio ? 'display:none;' : ''}">
+                        <label class="form-label">Seçenekler (Her satıra bir seçenek yazın)</label>
+                        <textarea class="form-input q-options" rows="4" data-index="${index}">${escapeHtml(optionsText)}</textarea>
+                    </div>
                 </div>
-                ${bonusHtml}
             `;
             $questionsList.appendChild(card);
+
+            // Toggle options visibility on type change & update maxScore
+            const typeSelect = card.querySelector('.q-type');
+            const optionsGroup = card.querySelector('.q-options-group');
+            const weightInput = card.querySelector('.q-weight');
+            const maxScoreInput = card.querySelector('.q-max-score');
+
+            function updateMaxScore() {
+                const w = parseInt(weightInput.value) || 1;
+                maxScoreInput.value = w * 5;
+            }
+
+            typeSelect.addEventListener('change', function() {
+                if (this.value === 'checkbox') {
+                    optionsGroup.style.display = '';
+                } else {
+                    optionsGroup.style.display = 'none';
+                }
+            });
+
+            weightInput.addEventListener('input', updateMaxScore);
         });
  
         // Bind dynamic delete events
@@ -913,31 +931,27 @@
         cards.forEach(card => {
             const idx = parseInt(card.dataset.index);
             const label = card.querySelector('.q-label').value.trim();
-            const maxScore = parseInt(card.querySelector('.q-max-score').value) || 10;
+            const type = card.querySelector('.q-type').value || 'radio';
+            const weight = parseInt(card.querySelector('.q-weight').value) || 1;
             const description = card.querySelector('.q-desc').value.trim();
             const isMethod = card.querySelector('.q-is-method') ? card.querySelector('.q-is-method').checked : false;
             
             const criterion = {
                 id: `c${idx + 1}`,
                 label: label,
-                maxScore: maxScore,
-                isBonus: false,
+                type: type,
+                weight: weight,
+                maxScore: weight * 5,
                 description: description,
                 isMethod: isMethod
             };
             
-            // Check if there was subBonus inputs
-            const bonusLabelInput = card.querySelector('.q-bonus-label');
-            const bonusMaxScoreInput = card.querySelector('.q-bonus-max-score');
-            const bonusDescInput = card.querySelector('.q-bonus-desc');
-            
-            if (bonusLabelInput && bonusMaxScoreInput && bonusDescInput) {
-                criterion.subBonus = {
-                    id: `c${idx + 1}b`,
-                    label: bonusLabelInput.value.trim(),
-                    maxScore: parseInt(bonusMaxScoreInput.value) || 5,
-                    description: bonusDescInput.value.trim()
-                };
+            // Check if checkbox type has options
+            if (type === 'checkbox') {
+                const optionsText = card.querySelector('.q-options');
+                if (optionsText) {
+                    criterion.options = optionsText.value.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+                }
             }
             
             currentQuestions.push(criterion);
@@ -949,8 +963,9 @@
         currentQuestions.push({
             id: `c${currentQuestions.length + 1}`,
             label: '',
-            maxScore: 10,
-            isBonus: false,
+            type: 'radio',
+            weight: 4,
+            maxScore: 20,
             description: ''
         });
         renderQuestions(currentQuestions);

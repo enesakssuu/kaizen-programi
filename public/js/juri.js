@@ -8,6 +8,9 @@
     let criteria = [];
     let currentScoringProject = null;
 
+    const IMPACT_LABELS = ['', 'Çok Düşük', 'Düşük', 'Orta', 'İyi', 'Çok İyi'];
+    const IMPACT_CLASSES = ['', 'impact-very-low', 'impact-low', 'impact-mid', 'impact-good', 'impact-great'];
+
     const $loginScreen = document.getElementById('login-screen');
     const $dashboard = document.getElementById('dashboard');
     const $loginForm = document.getElementById('login-form');
@@ -139,21 +142,18 @@
         }
     }
 
-    // ==================== SCORE SLOTS ====================
-    // Build flat score slots matching server expectation: criterion + subBonus interleaved
-    function buildSlots() {
-        const slots = [];
-        criteria.forEach((c, ci) => {
-            slots.push({ criterionIndex: ci, isSubBonus: false, label: c.label, maxScore: c.maxScore, id: c.id });
-            if (c.subBonus) {
-                slots.push({ criterionIndex: ci, isSubBonus: true, label: c.subBonus.label, maxScore: c.subBonus.maxScore, id: c.subBonus.id });
-            }
-        });
-        return slots;
+    // ==================== HELPERS ====================
+    function maxTotal() {
+        return criteria.reduce((sum, c) => sum + c.maxScore, 0);
     }
 
-    function maxTotal() {
-        return buildSlots().reduce((s, slot) => s + slot.maxScore, 0);
+    function checkboxCountToLevel(count) {
+        if (count <= 0) return 0;
+        if (count <= 2) return 1;
+        if (count <= 3) return 2;
+        if (count <= 4) return 3;
+        if (count <= 5) return 4;
+        return 5;
     }
 
     // ==================== RENDER PROJECTS ====================
@@ -208,95 +208,138 @@
         $scoringQuestions.innerHTML = '';
 
         const existingScore = jurorScores[project.id];
-        const slots = buildSlots();
         const max = maxTotal();
         if ($scoringTotalMax) $scoringTotalMax.textContent = max;
 
-        // Render criteria; group subBonus inside its parent criterion card
-        let slotIndex = 0;
-        let criterionNum = 0;
-
-        criteria.forEach((criterion) => {
-            const mainSlot = slots[slotIndex];
-            const mainExisting = existingScore ? existingScore.scores[slotIndex] : Math.round(criterion.maxScore / 2);
-            const mainSlotIndex = slotIndex;
-            slotIndex++;
-
-            criterionNum++;
+        criteria.forEach((criterion, ci) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'score-question';
 
-            // Main criterion slider
+            if (criterion.type === 'checkbox') {
+                // ---- CHECKBOX CRITERION ----
+                const existingSelected = existingScore ? existingScore.scores[ci] : [];
+                const selectedArr = Array.isArray(existingSelected) ? existingSelected : [];
+                const count = selectedArr.length;
+                const level = checkboxCountToLevel(count);
+
+                wrapper.innerHTML = `
+                    <div class="score-question-label">
+                        <span class="score-question-number">${ci + 1}</span>
+                        <span class="score-criterion-label">${escapeHtml(criterion.label)}</span>
+                        <span class="score-criterion-max">/ ${criterion.maxScore} puan</span>
+                    </div>
+                    <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>
+                    <div class="checkbox-options-grid" id="checkbox-group-${ci}">
+                        ${(criterion.options || []).map((opt, oi) => {
+                            const isChecked = selectedArr.includes(opt);
+                            return `
+                                <label class="checkbox-option ${isChecked ? 'checked' : ''}" id="checkbox-option-${ci}-${oi}">
+                                    <input type="checkbox" class="checkbox-input" 
+                                           data-ci="${ci}" data-oi="${oi}" data-opt="${escapeHtml(opt)}"
+                                           ${isChecked ? 'checked' : ''}>
+                                    <span class="checkbox-icon">
+                                        <svg viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </span>
+                                    <span class="checkbox-text">${escapeHtml(opt)}</span>
+                                </label>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="checkbox-score-display" id="checkbox-score-${ci}">
+                        <div class="checkbox-score-info">
+                            <span class="checkbox-count">Seçilen alan: <strong id="checkbox-count-val-${ci}">${count}</strong></span>
+                            <span class="checkbox-level">Kazanım skoru: <strong id="checkbox-level-val-${ci}">${level}</strong>/5</span>
+                        </div>
+                        <div class="checkbox-weighted-score">
+                            <span id="checkbox-weighted-${ci}">${level * (criterion.weight || 4)}</span>
+                            <span class="checkbox-weighted-max">/${criterion.maxScore}</span>
+                        </div>
+                    </div>
+                `;
+
+                // Bind checkbox events after appending
+                $scoringQuestions.appendChild(wrapper);
+
+                const checkboxes = wrapper.querySelectorAll('.checkbox-input');
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', function () {
+                        const option = this.closest('.checkbox-option');
+                        if (this.checked) {
+                            option.classList.add('checked');
+                        } else {
+                            option.classList.remove('checked');
+                        }
+                        // Recalculate
+                        const allChecked = wrapper.querySelectorAll('.checkbox-input:checked');
+                        const newCount = allChecked.length;
+                        const newLevel = checkboxCountToLevel(newCount);
+                        document.getElementById(`checkbox-count-val-${ci}`).textContent = newCount;
+                        document.getElementById(`checkbox-level-val-${ci}`).textContent = newLevel;
+                        document.getElementById(`checkbox-weighted-${ci}`).textContent = newLevel * (criterion.weight || 4);
+                        updateTotal();
+                    });
+                });
+                return; // skip normal appendChild below
+            }
+
+            // ---- RADIO CRITERION ----
+            const existingVal = existingScore ? existingScore.scores[ci] : 3;
+            const currentVal = (typeof existingVal === 'number' && existingVal >= 1 && existingVal <= 5) ? existingVal : 3;
             const methodBadge = criterion.isMethod ? ` <span class="score-badge--method">METOT</span>` : '';
+
             wrapper.innerHTML = `
                 <div class="score-question-label">
-                    <span class="score-question-number">${criterionNum}</span>
+                    <span class="score-question-number">${ci + 1}</span>
                     <span class="score-criterion-label">${escapeHtml(criterion.label)}${methodBadge}</span>
                     <span class="score-criterion-max">/ ${criterion.maxScore} puan</span>
                 </div>
                 <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>
-                <div class="score-slider-container">
-                    <div class="score-slider-row">
-                        <input type="range" class="score-slider" min="0" max="${criterion.maxScore}" value="${mainExisting}"
-                               data-slot-index="${mainSlotIndex}" id="score-slider-${mainSlotIndex}">
-                        <div class="score-value-display ${getScoreClass(mainExisting, criterion.maxScore)}" id="score-display-${mainSlotIndex}">
-                            ${mainExisting}<span class="score-display-max">/${criterion.maxScore}</span>
-                        </div>
+                <div class="radio-score-group" id="radio-group-${ci}">
+                    ${[1, 2, 3, 4, 5].map(v => `
+                        <label class="radio-score-item ${v === currentVal ? 'selected' : ''}">
+                            <input type="radio" name="score-radio-${ci}" value="${v}" 
+                                   data-ci="${ci}" class="radio-input" ${v === currentVal ? 'checked' : ''}>
+                            <span class="radio-circle">${v}</span>
+                        </label>
+                    `).join('')}
+                </div>
+                <div class="impact-display" id="impact-display-${ci}">
+                    <div class="impact-bar">
+                        <div class="impact-bar-fill ${IMPACT_CLASSES[currentVal]}" id="impact-bar-fill-${ci}" style="width: ${currentVal * 20}%"></div>
+                    </div>
+                    <div class="impact-info">
+                        <span class="impact-label ${IMPACT_CLASSES[currentVal]}" id="impact-label-${ci}">Etki: ${IMPACT_LABELS[currentVal]}</span>
+                        <span class="impact-weighted-score">
+                            <span id="impact-weighted-${ci}">${currentVal * (criterion.weight || 1)}</span>
+                            <span class="impact-weighted-max">/${criterion.maxScore}</span>
+                        </span>
                     </div>
                 </div>
             `;
 
-            const slider = wrapper.querySelector('.score-slider');
-            const display = wrapper.querySelector('.score-value-display');
-            slider.addEventListener('input', function () {
-                const val = parseInt(this.value);
-                display.innerHTML = val + `<span class="score-display-max">/${criterion.maxScore}</span>`;
-                display.className = 'score-value-display ' + getScoreClass(val, criterion.maxScore);
-                updateTotal();
-            });
+            $scoringQuestions.appendChild(wrapper);
 
-            // SubBonus: render inside this card
-            if (criterion.subBonus) {
-                const bonusSlot = slots[slotIndex];
-                const bonusExisting = existingScore ? existingScore.scores[slotIndex] : 0;
-                const bonusSlotIndex = slotIndex;
-                slotIndex++;
-
-                const isChecked = bonusExisting === criterion.subBonus.maxScore;
-                const bonusDiv = document.createElement('div');
-                bonusDiv.className = 'sub-bonus-block';
-                bonusDiv.innerHTML = `
-                    <div class="sub-bonus-header">
-                        <span class="score-badge--bonus">+${criterion.subBonus.maxScore} BONUS</span>
-                        <span class="sub-bonus-label">${escapeHtml(criterion.subBonus.label)}</span>
-                    </div>
-                    <p class="score-criterion-desc">${escapeHtml(criterion.subBonus.description)}</p>
-                    <label class="bonus-toggle" for="bonus-toggle-${bonusSlotIndex}">
-                        <input type="checkbox" id="bonus-toggle-${bonusSlotIndex}" 
-                               data-slot-index="${bonusSlotIndex}" 
-                               data-maxscore="${criterion.subBonus.maxScore}" 
-                               class="bonus-checkbox" ${isChecked ? 'checked' : ''}>
-                        <span class="bonus-toggle-track"><span class="bonus-toggle-thumb"></span></span>
-                        <span class="bonus-toggle-label ${isChecked ? 'bonus-active' : ''}" id="bonus-label-${bonusSlotIndex}">
-                            ${isChecked ? 'Evet — +' + criterion.subBonus.maxScore + ' puan eklendi' : 'Hayır — bonus yok'}
-                        </span>
-                    </label>
-                `;
-                bonusDiv.querySelector('.bonus-checkbox').addEventListener('change', function () {
-                    const lbl = document.getElementById('bonus-label-' + bonusSlotIndex);
-                    if (this.checked) {
-                        lbl.textContent = 'Evet — +' + this.dataset.maxscore + ' puan eklendi';
-                        lbl.classList.add('bonus-active');
-                    } else {
-                        lbl.textContent = 'Hayır — bonus yok';
-                        lbl.classList.remove('bonus-active');
-                    }
+            // Bind radio events
+            const radios = wrapper.querySelectorAll('.radio-input');
+            radios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    const val = parseInt(this.value);
+                    // Update selected class on all items in this group
+                    const group = wrapper.querySelectorAll('.radio-score-item');
+                    group.forEach(item => item.classList.remove('selected'));
+                    this.closest('.radio-score-item').classList.add('selected');
+                    // Update impact display
+                    const barFill = document.getElementById(`impact-bar-fill-${ci}`);
+                    const label = document.getElementById(`impact-label-${ci}`);
+                    const weighted = document.getElementById(`impact-weighted-${ci}`);
+                    barFill.style.width = (val * 20) + '%';
+                    barFill.className = 'impact-bar-fill ' + IMPACT_CLASSES[val];
+                    label.textContent = 'Etki: ' + IMPACT_LABELS[val];
+                    label.className = 'impact-label ' + IMPACT_CLASSES[val];
+                    weighted.textContent = val * (criterion.weight || 1);
                     updateTotal();
                 });
-                wrapper.appendChild(bonusDiv);
-            }
-
-            $scoringQuestions.appendChild(wrapper);
+            });
         });
 
         updateTotal();
@@ -309,25 +352,20 @@
     }
 
     function updateTotal() {
-        const slots = buildSlots();
         let total = 0;
-        slots.forEach((slot, i) => {
-            if (slot.isSubBonus) {
-                const cb = document.getElementById('bonus-toggle-' + i);
-                if (cb && cb.checked) total += slot.maxScore;
+        criteria.forEach((c, ci) => {
+            if (c.type === 'checkbox') {
+                const allChecked = document.querySelectorAll(`#checkbox-group-${ci} .checkbox-input:checked`);
+                const level = checkboxCountToLevel(allChecked.length);
+                total += level * (c.weight || 4);
             } else {
-                const sl = document.getElementById('score-slider-' + i);
-                if (sl) total += parseInt(sl.value);
+                const checked = document.querySelector(`input[name="score-radio-${ci}"]:checked`);
+                if (checked) {
+                    total += parseInt(checked.value) * (c.weight || 1);
+                }
             }
         });
         $scoringTotal.textContent = total;
-    }
-
-    function getScoreClass(val, max) {
-        const ratio = max > 0 ? val / max : 0;
-        if (ratio >= 0.7) return 'high';
-        if (ratio >= 0.4) return 'mid';
-        return 'low';
     }
 
     // ==================== SAVE SCORE ====================
@@ -335,14 +373,13 @@
         e.preventDefault();
         if (!currentScoringProject || !currentJuror) return;
 
-        const slots = buildSlots();
-        const scores = slots.map((slot, i) => {
-            if (slot.isSubBonus) {
-                const cb = document.getElementById('bonus-toggle-' + i);
-                return cb && cb.checked ? slot.maxScore : 0;
+        const scores = criteria.map((c, ci) => {
+            if (c.type === 'checkbox') {
+                const allChecked = document.querySelectorAll(`#checkbox-group-${ci} .checkbox-input:checked`);
+                return Array.from(allChecked).map(cb => cb.dataset.opt);
             } else {
-                const sl = document.getElementById('score-slider-' + i);
-                return sl ? parseInt(sl.value) : 0;
+                const checked = document.querySelector(`input[name="score-radio-${ci}"]:checked`);
+                return checked ? parseInt(checked.value) : 3;
             }
         });
 

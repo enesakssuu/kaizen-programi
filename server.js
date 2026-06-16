@@ -78,51 +78,54 @@ function getDefaultData() {
             criteria: [
                 {
                     id: "c1",
-                    label: "Hasta Güvenliği ve Memnuniyeti (Hastaya Yansıması)",
-                    maxScore: 30,
-                    isBonus: false,
-                    description: "Projenin hasta güvenliğine ve memnuniyetine doğrudan katkısı"
+                    label: "Hasta Güvenliği ve Memnuniyeti",
+                    type: "radio",
+                    weight: 4,
+                    maxScore: 20,
+                    description: "Projenin hasta güvenliği üzerindeki etkisi"
                 },
                 {
                     id: "c2",
                     label: "Çalışan Güvenliği ve Memnuniyeti",
+                    type: "radio",
+                    weight: 3,
                     maxScore: 15,
-                    isBonus: false,
-                    description: "Projenin çalışan güvenliğini ve memnuniyetini artırma etkisi"
+                    description: "Çalışan deneyimine katkısı"
                 },
                 {
                     id: "c3",
-                    label: "Takım Çalışmasının Sağlanması",
-                    maxScore: 10,
-                    isBonus: false,
-                    description: "Ekip içi iş birliği ve koordinasyon kalitesi",
-                    subBonus: {
-                        id: "c3b",
-                        label: "Farklı Birimlerden Ekip Bonusu",
-                        maxScore: 5,
-                        description: "Proje ekibi farklı birimlerden oluşuyor mu?"
-                    }
+                    label: "Problem Çözme Teknikleri",
+                    type: "radio",
+                    weight: 5,
+                    maxScore: 25,
+                    description: "5S, Kaizen, PDCA vb. yöntemlerin kullanımı",
+                    isMethod: true
                 },
                 {
                     id: "c4",
-                    label: "Problem Çözme Tekniklerinin Kullanımı ve Standartlaştırılması",
-                    maxScore: 25,
-                    isBonus: false,
-                    description: "Kaizen, 5S, PDCA vb. problem çözme metodolojilerinin etkin kullanımı ve standart hale getirilmesi"
+                    label: "Kazanım",
+                    type: "checkbox",
+                    weight: 4,
+                    maxScore: 20,
+                    description: "Birden fazla seçim yapılabilir",
+                    options: [
+                        "İş gücü kazancı",
+                        "Zaman tasarrufu",
+                        "Maliyet avantajı",
+                        "Enerji tasarrufu",
+                        "Ergonomi",
+                        "Dijital dönüşüm",
+                        "Dokümantasyon",
+                        "Makine verimliliği"
+                    ]
                 },
                 {
                     id: "c5",
-                    label: "Kazanım",
-                    maxScore: 20,
-                    isBonus: false,
-                    description: "İş gücü, makine/cihaz verimliliği, malzeme tasarrufu, enerji tasarrufu, ergonomi, dijital dönüşüm, dokümantasyon"
-                },
-                {
-                    id: "c6",
                     label: "Sürdürülebilirlik",
-                    maxScore: 10,
-                    isBonus: false,
-                    description: "Standartlaştırma, yaygınlaştırma ve kaizenin süreçte devamlılığı"
+                    type: "radio",
+                    weight: 4,
+                    maxScore: 20,
+                    description: "Süreç standardizasyonu ve devamlılık"
                 }
             ],
             adminPassword: "kaizen2026",
@@ -168,21 +171,7 @@ function ensureDefaults(data) {
         settings: {
             ...defaults.settings,
             ...(data.settings || {}),
-            criteria: (() => {
-                const list = Array.isArray(data.settings && data.settings.criteria) ? data.settings.criteria : defaults.settings.criteria;
-                let hasMethod = false;
-                return list.map(c => {
-                    const cCopy = { ...c };
-                    if (cCopy.isMethod) {
-                        if (hasMethod) {
-                            cCopy.isMethod = false;
-                        } else {
-                            hasMethod = true;
-                        }
-                    }
-                    return cCopy;
-                });
-            })(),
+            criteria: Array.isArray(data.settings && data.settings.criteria) ? data.settings.criteria : defaults.settings.criteria,
             sounds: {
                 ...defaults.settings.sounds,
                 ...((data.settings && data.settings.sounds) || {})
@@ -250,11 +239,7 @@ function calculateRankings(data) {
         projectScores[score.projectId].count += 1;
     }
 
-    const maxScore = data.settings.criteria.reduce((sum, c) => {
-        let s = sum + c.maxScore;
-        if (c.subBonus) s += c.subBonus.maxScore;
-        return s;
-    }, 0);
+    const maxScore = data.settings.criteria.reduce((sum, c) => sum + c.maxScore, 0);
 
     const rankings = data.projects.map(project => {
         const ps = projectScores[project.id] || { totalSum: 0, count: 0 };
@@ -283,28 +268,12 @@ function calculateMethodRankings(data) {
 
     const methodCriterion = criteria[methodCriterionIndex];
 
-    // Find flat slot index corresponding to this criterion
-    let slotIndex = 0;
-    let methodSlotIndex = -1;
-    for (let i = 0; i < criteria.length; i++) {
-        if (i === methodCriterionIndex) {
-            methodSlotIndex = slotIndex;
-            break;
-        }
-        slotIndex++;
-        if (criteria[i].subBonus) {
-            slotIndex++;
-        }
-    }
-
-    if (methodSlotIndex === -1) {
-        return [];
-    }
-
     const projectMethodScores = {};
     for (const key in data.scores) {
         const score = data.scores[key];
-        const val = score.scores[methodSlotIndex] || 0;
+        const rawVal = score.scores[methodCriterionIndex];
+        // For radio type, rawVal is 1-5; compute weighted score
+        const val = (typeof rawVal === 'number' ? rawVal : 0) * (methodCriterion.weight || 1);
         if (!projectMethodScores[score.projectId]) {
             projectMethodScores[score.projectId] = { totalSum: 0, count: 0 };
         }
@@ -458,31 +427,39 @@ app.post('/api/scores', async (req, res) => {
     const data = await readData();
     const criteria = data.settings.criteria;
 
-    // Build flat list of score slots: each criterion + its subBonus (if any)
-    const slots = [];
-    for (const c of criteria) {
-        slots.push({ label: c.label, maxScore: c.maxScore, isBonus: false });
-        if (c.subBonus) {
-            slots.push({ label: c.subBonus.label, maxScore: c.subBonus.maxScore, isBonus: true });
-        }
+    if (!jurorId || !projectId || !scores || !Array.isArray(scores) || scores.length !== criteria.length) {
+        return res.status(400).json({ message: `Geçersiz puan verisi (beklenen ${criteria.length} değer, gelen ${scores ? scores.length : 0})` });
     }
 
-    if (!jurorId || !projectId || !scores || !Array.isArray(scores) || scores.length !== slots.length) {
-        return res.status(400).json({ message: `Geçersiz puan verisi (beklenen ${slots.length} değer, gelen ${scores ? scores.length : 0})` });
-    }
-
-    for (let i = 0; i < slots.length; i++) {
-        const slot = slots[i];
+    let total = 0;
+    for (let i = 0; i < criteria.length; i++) {
+        const c = criteria[i];
         const s = scores[i];
-        if (typeof s !== 'number' || s < 0 || s > slot.maxScore) {
-            return res.status(400).json({ message: `"${slot.label}" için geçersiz puan (0-${slot.maxScore} arası olmalı)` });
-        }
-        if (slot.isBonus && s !== 0 && s !== slot.maxScore) {
-            return res.status(400).json({ message: `"${slot.label}" bonus kriteri 0 veya ${slot.maxScore} olmalıdır` });
+
+        if (c.type === 'checkbox') {
+            // s should be an array of selected option strings
+            if (!Array.isArray(s)) {
+                return res.status(400).json({ message: `"${c.label}" için geçersiz veri (dizi bekleniyor)` });
+            }
+            // Calculate checkbox score: count -> 1-5 scale
+            const count = s.length;
+            let level;
+            if (count <= 0) level = 0;
+            else if (count <= 2) level = 1;
+            else if (count <= 3) level = 2;
+            else if (count <= 4) level = 3;
+            else if (count <= 5) level = 4;
+            else level = 5;
+            total += level * (c.weight || 4);
+        } else {
+            // Radio type: s should be a number 1-5
+            if (typeof s !== 'number' || s < 1 || s > 5) {
+                return res.status(400).json({ message: `"${c.label}" için geçersiz puan (1-5 arası olmalı)` });
+            }
+            total += s * (c.weight || 1);
         }
     }
 
-    const total = scores.reduce((a, b) => a + b, 0);
     const key = `${jurorId}_${projectId}`;
     data.scores[key] = {
         jurorId,
@@ -548,18 +525,14 @@ app.put('/api/settings', async (req, res) => {
             const criterion = {
                 id: c.id || `c${i+1}`,
                 label: typeof c.label === 'string' ? c.label.trim() : `Soru ${i+1}`,
+                type: c.type || 'radio',
+                weight: typeof c.weight === 'number' ? c.weight : (typeof c.weight === 'string' ? parseInt(c.weight) || 1 : 1),
                 maxScore: typeof c.maxScore === 'number' ? c.maxScore : (typeof c.maxScore === 'string' ? parseInt(c.maxScore) || 10 : 10),
-                isBonus: typeof c.isBonus === 'boolean' ? c.isBonus : false,
                 description: typeof c.description === 'string' ? c.description.trim() : "",
                 isMethod: typeof c.isMethod === 'boolean' ? c.isMethod : false
             };
-            if (c.subBonus) {
-                criterion.subBonus = {
-                    id: c.subBonus.id || `${criterion.id}b`,
-                    label: typeof c.subBonus.label === 'string' ? c.subBonus.label.trim() : "Bonus",
-                    maxScore: typeof c.subBonus.maxScore === 'number' ? c.subBonus.maxScore : (typeof c.subBonus.maxScore === 'string' ? parseInt(c.subBonus.maxScore) || 5 : 5),
-                    description: typeof c.subBonus.description === 'string' ? c.subBonus.description.trim() : ""
-                };
+            if (c.type === 'checkbox' && Array.isArray(c.options)) {
+                criterion.options = c.options.map(o => typeof o === 'string' ? o.trim() : String(o));
             }
             return criterion;
         });
