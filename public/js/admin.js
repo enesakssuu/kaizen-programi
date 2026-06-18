@@ -785,7 +785,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">Ağırlık Çarpanı</label>
-                            <input type="number" class="form-input q-weight" value="${c.weight || 1}" data-index="${index}" min="1" max="20">
+                            <input type="number" class="form-input q-weight" value="${c.weight || 1}" data-index="${index}" min="0.5" max="20" step="0.5">
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">Maks. Puan</label>
@@ -812,7 +812,7 @@
             const maxScoreInput = card.querySelector('.q-max-score');
 
             function updateMaxScore() {
-                const w = parseInt(weightInput.value) || 1;
+                const w = parseFloat(weightInput.value) || 1;
                 maxScoreInput.value = w * 10;
             }
 
@@ -847,7 +847,7 @@
             const idx = parseInt(card.dataset.index);
             const label = card.querySelector('.q-label').value.trim();
             const type = card.querySelector('.q-type').value || 'radio';
-            const weight = parseInt(card.querySelector('.q-weight').value) || 1;
+            const weight = parseFloat(card.querySelector('.q-weight').value) || 1;
             const description = card.querySelector('.q-desc').value.trim();
             
             const criterion = {

@@ -502,27 +502,14 @@ app.put('/api/settings', async (req, res) => {
                 id: c.id || `c${i+1}`,
                 label: typeof c.label === 'string' ? c.label.trim() : `Soru ${i+1}`,
                 type: c.type || 'radio',
-                weight: typeof c.weight === 'number' ? c.weight : (typeof c.weight === 'string' ? parseInt(c.weight) || 1 : 1),
+                weight: typeof c.weight === 'number' ? c.weight : (typeof c.weight === 'string' ? parseFloat(c.weight) || 1 : 1),
                 maxScore: typeof c.maxScore === 'number' ? c.maxScore : (typeof c.maxScore === 'string' ? parseInt(c.maxScore) || 10 : 10),
-                description: typeof c.description === 'string' ? c.description.trim() : "",
-                isMethod: typeof c.isMethod === 'boolean' ? c.isMethod : false
+                description: typeof c.description === 'string' ? c.description.trim() : ""
             };
             if (c.type === 'checkbox' && Array.isArray(c.options)) {
                 criterion.options = c.options.map(o => typeof o === 'string' ? o.trim() : String(o));
             }
             return criterion;
-        });
-
-        // Ensure at most one isMethod is true
-        let hasMethod = false;
-        data.settings.criteria.forEach(c => {
-            if (c.isMethod) {
-                if (hasMethod) {
-                    c.isMethod = false;
-                } else {
-                    hasMethod = true;
-                }
-            }
         });
     }
 
