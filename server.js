@@ -64,9 +64,6 @@ function getDefaultData() {
             revealedRanks: [],
             isRevealing: false,
             currentRank: null,
-            methodRevealed: false,
-            methodRevealStarted: false,
-            methodRevealTimestamp: null,
             timer: {
                 duration: 600, // 10 minutes default
                 remaining: 600,
@@ -81,7 +78,7 @@ function getDefaultData() {
                     id: "c1",
                     label: "Hasta Güvenliği ve Memnuniyeti",
                     type: "radio",
-                    weight: 4,
+                    weight: 2,
                     maxScore: 20,
                     description: "Projenin hasta güvenliği üzerindeki etkisi"
                 },
@@ -89,7 +86,7 @@ function getDefaultData() {
                     id: "c2",
                     label: "Çalışan Güvenliği ve Memnuniyeti",
                     type: "radio",
-                    weight: 3,
+                    weight: 1.5,
                     maxScore: 15,
                     description: "Çalışan deneyimine katkısı"
                 },
@@ -97,16 +94,15 @@ function getDefaultData() {
                     id: "c3",
                     label: "Problem Çözme Teknikleri",
                     type: "radio",
-                    weight: 5,
+                    weight: 2.5,
                     maxScore: 25,
-                    description: "5S, Kaizen, PDCA vb. yöntemlerin kullanımı",
-                    isMethod: true
+                    description: "5S, Kaizen, PDCA vb. yöntemlerin kullanımı"
                 },
                 {
                     id: "c4",
                     label: "Kazanım",
                     type: "checkbox",
-                    weight: 4,
+                    weight: 2,
                     maxScore: 20,
                     description: "Birden fazla seçim yapılabilir",
                     options: [
@@ -126,7 +122,7 @@ function getDefaultData() {
                     id: "c5",
                     label: "Sürdürülebilirlik",
                     type: "radio",
-                    weight: 4,
+                    weight: 2,
                     maxScore: 20,
                     description: "Süreç standardizasyonu ve devamlılık"
                 }
@@ -178,9 +174,6 @@ function ensureDefaults(data) {
             revealedRanks: Array.isArray(presentation.revealedRanks) ? presentation.revealedRanks : defaults.presentation.revealedRanks,
             isRevealing: typeof presentation.isRevealing === 'boolean' ? presentation.isRevealing : defaults.presentation.isRevealing,
             currentRank: presentation.currentRank !== undefined ? presentation.currentRank : defaults.presentation.currentRank,
-            methodRevealed: typeof presentation.methodRevealed === 'boolean' ? presentation.methodRevealed : defaults.presentation.methodRevealed,
-            methodRevealStarted: typeof presentation.methodRevealStarted === 'boolean' ? presentation.methodRevealStarted : defaults.presentation.methodRevealStarted,
-            methodRevealTimestamp: presentation.methodRevealTimestamp !== undefined ? presentation.methodRevealTimestamp : defaults.presentation.methodRevealTimestamp,
             timer: {
                 duration: typeof timer.duration === 'number' ? timer.duration : defaults.presentation.timer.duration,
                 remaining: typeof timer.remaining === 'number' ? timer.remaining : defaults.presentation.timer.remaining,
@@ -280,45 +273,7 @@ function calculateRankings(data) {
     return rankings;
 }
 
-function calculateMethodRankings(data) {
-    const criteria = data.settings.criteria;
-    const methodCriterionIndex = criteria.findIndex(c => c.isMethod === true);
-    if (methodCriterionIndex === -1) {
-        return [];
-    }
-
-    const methodCriterion = criteria[methodCriterionIndex];
-
-    const projectMethodScores = {};
-    for (const key in data.scores) {
-        const score = data.scores[key];
-        const rawVal = score.scores[methodCriterionIndex];
-        // For radio type, rawVal is 1-5; compute weighted score
-        const val = (typeof rawVal === 'number' ? rawVal : 0) * (methodCriterion.weight || 1);
-        if (!projectMethodScores[score.projectId]) {
-            projectMethodScores[score.projectId] = { totalSum: 0, count: 0 };
-        }
-        projectMethodScores[score.projectId].totalSum += val;
-        projectMethodScores[score.projectId].count += 1;
-    }
-
-    const rankings = data.projects.map(project => {
-        const ps = projectMethodScores[project.id] || { totalSum: 0, count: 0 };
-        const average = ps.count > 0 ? Math.round((ps.totalSum / ps.count) * 100) / 100 : 0;
-        return {
-            projectId: project.id,
-            projectName: project.name,
-            projectTeam: project.team || '',
-            averageScore: average,
-            maxScore: methodCriterion.maxScore,
-            jurorCount: ps.count,
-            totalJurors: data.jurors.length
-        };
-    });
-
-    rankings.sort((a, b) => b.averageScore - a.averageScore);
-    return rankings;
-}
+// Method rankings calculations removed
 
 
 // ==================== AUTH ====================
@@ -462,20 +417,20 @@ app.post('/api/scores', async (req, res) => {
             if (!Array.isArray(s)) {
                 return res.status(400).json({ message: `"${c.label}" için geçersiz veri (dizi bekleniyor)` });
             }
-            // Calculate checkbox score: count -> 1-5 scale
+            // Calculate checkbox score: count -> 1-10 scale
             const count = s.length;
             let level;
             if (count === 0) level = 0;
-            else if (count === 1) level = 1;
-            else if (count === 2) level = 2;
-            else if (count === 3) level = 3;
-            else if (count === 4 || count === 5) level = 4;
-            else level = 5;
-            total += level * (c.weight || 4);
+            else if (count === 1) level = 2;
+            else if (count === 2) level = 4;
+            else if (count === 3) level = 6;
+            else if (count === 4 || count === 5) level = 8;
+            else level = 10;
+            total += level * (c.weight || 2);
         } else {
-            // Radio type: s should be a number 1-5
-            if (typeof s !== 'number' || s < 1 || s > 5) {
-                return res.status(400).json({ message: `"${c.label}" için geçersiz puan (1-5 arası olmalı)` });
+            // Radio type: s should be a number 1-10
+            if (typeof s !== 'number' || s < 1 || s > 10) {
+                return res.status(400).json({ message: `"${c.label}" için geçersiz puan (1-10 arası olmalı)` });
             }
             total += s * (c.weight || 1);
         }
@@ -671,55 +626,13 @@ app.post('/api/settings/reset/all', async (req, res) => {
 app.get('/api/presentation/status', async (req, res) => {
     const data = await readData();
     const rankings = calculateRankings(data);
-    const methodRankings = calculateMethodRankings(data);
-
-    // Auto-update methodRevealed if reveal time has passed
-    let didChange = false;
-    if (data.presentation.methodRevealStarted && !data.presentation.methodRevealed && data.presentation.methodRevealTimestamp) {
-        if (Date.now() >= data.presentation.methodRevealTimestamp) {
-            data.presentation.methodRevealed = true;
-            didChange = true;
-        }
-    }
-
-    if (didChange) {
-        await writeData(data);
-    }
-
-    const methodCriterion = data.settings.criteria.find(c => c.isMethod === true);
 
     res.json({
         presentation: data.presentation,
         rankings: rankings,
-        methodRankings: methodRankings,
-        methodCriterion: methodCriterion ? {
-            id: methodCriterion.id,
-            label: methodCriterion.label,
-            maxScore: methodCriterion.maxScore
-        } : null,
         settings: data.settings,
         serverTime: Date.now()
     });
-});
-
-app.post('/api/presentation/reveal-method', async (req, res) => {
-    const data = await readData();
-    data.presentation.methodRevealStarted = true;
-    data.presentation.methodRevealed = false;
-    const countdownSec = data.settings.countdownSeconds || 10;
-    data.presentation.methodRevealTimestamp = Date.now() + (countdownSec * 1000);
-    data.presentation.mode = 'method';
-    await writeData(data);
-    res.json({ success: true, presentation: data.presentation });
-});
-
-app.post('/api/presentation/reset-method', async (req, res) => {
-    const data = await readData();
-    data.presentation.methodRevealStarted = false;
-    data.presentation.methodRevealed = false;
-    data.presentation.methodRevealTimestamp = null;
-    await writeData(data);
-    res.json({ success: true, presentation: data.presentation });
 });
 
 app.post('/api/presentation/reveal', async (req, res) => {
@@ -738,6 +651,26 @@ app.post('/api/presentation/reveal', async (req, res) => {
     }
 
     const rankToReveal = totalToShow - revealedCount;
+
+    if (rankToReveal === 2) {
+        // Reveal both 1st and 2nd place at the same time
+        if (!data.presentation.revealedRanks.includes(2)) {
+            data.presentation.revealedRanks.push(2);
+        }
+        if (!data.presentation.revealedRanks.includes(1)) {
+            data.presentation.revealedRanks.push(1);
+        }
+        data.presentation.currentRank = 2;
+        await writeData(data);
+        return res.json({
+            success: true,
+            rank: 2,
+            project: rankings[1], // 2nd place
+            project1st: rankings[0], // 1st place
+            remaining: 0
+        });
+    }
+
     const projectIndex = rankToReveal - 1;
     const project = rankings[projectIndex];
 
@@ -769,7 +702,7 @@ app.post('/api/presentation/reset', async (req, res) => {
 // ==================== PRESENTATION MODE & TIMER ENDPOINTS ====================
 app.post('/api/presentation/mode', async (req, res) => {
     const { mode } = req.body;
-    if (mode !== 'timer' && mode !== 'waiting' && mode !== 'welcome' && mode !== 'method') {
+    if (mode !== 'timer' && mode !== 'waiting' && mode !== 'welcome') {
         return res.status(400).json({ message: 'Geçersiz mod' });
     }
     const data = await readData();
@@ -846,18 +779,11 @@ app.post('/api/presentation/timer/set', async (req, res) => {
 // ==================== ADMIN ALL SCORES ====================
 app.get('/api/admin/all-scores', async (req, res) => {
     const data = await readData();
-    const methodCriterion = data.settings.criteria.find(c => c.isMethod === true);
     res.json({
         projects: data.projects,
         jurors: data.jurors,
         scores: data.scores,
-        rankings: calculateRankings(data),
-        methodRankings: calculateMethodRankings(data),
-        methodCriterion: methodCriterion ? {
-            id: methodCriterion.id,
-            label: methodCriterion.label,
-            maxScore: methodCriterion.maxScore
-        } : null
+        rankings: calculateRankings(data)
     });
 });
 

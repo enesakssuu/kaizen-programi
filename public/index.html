@@ -93,23 +93,6 @@
                 <p class="waiting-text">Sonuçların açıklanması bekleniyor</p>
                 <p class="waiting-subtext">Jüri değerlendirmeleri tamamlandığında sıralamalar burada açıklanacaktır.</p>
             </div>
-
-            <!-- Method State -->
-            <div class="waiting-state hidden" id="method-state">
-                <div class="waiting-logo-card">
-                    <div class="waiting-logo-container">
-                        <img src="/logo.png" alt="Kaizen Logo" class="waiting-logo-img">
-                    </div>
-                    <div class="waiting-visual">
-                        <div class="ring ring-1"></div>
-                        <div class="ring ring-2"></div>
-                        <div class="ring ring-3"></div>
-                        <div class="pulse-core"></div>
-                    </div>
-                </div>
-                <p class="waiting-text">Metot Ödülü Sonucu</p>
-                <p class="waiting-subtext">Sonucun açıklanması bekleniyor...</p>
-            </div>
         </main>
 
         <!-- Countdown Overlay (hidden by default) -->
@@ -142,13 +125,33 @@
                 </div>
             </div>
 
-            <!-- Method Award Reveal Card -->
-            <div class="reveal-card hidden" id="method-reveal-card" style="max-width: 650px; padding: 3.5rem 3rem; background: rgba(255, 255, 255, 0.85); border-radius: var(--radius-lg); border: 1px solid rgba(10, 51, 139, 0.08); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
-                <div style="text-transform: uppercase; font-size: 1rem; font-weight: 800; letter-spacing: 0.3em; color: var(--primary); margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1.2rem; font-family: 'Fredoka', sans-serif;">
-                    METOT ÖDÜLÜ KAZANANI
+            <!-- Top Two Reveal Container (1st & 2nd places side-by-side) -->
+            <div class="reveal-two-container hidden" id="reveal-two-container">
+                <!-- 2nd Place Card (Silver) -->
+                <div class="reveal-card rank-silver-card" id="reveal-silver-card">
+                    <div class="reveal-rank-badge rank-silver">
+                        <span>#2</span>
+                    </div>
+                    <h2 class="reveal-project-name" id="reveal-silver-project-name">Proje Adı</h2>
+                    <p class="reveal-project-team" id="reveal-silver-project-team">Ekip Adı</p>
+                    <div class="reveal-score-display">
+                        <span class="reveal-score-value" id="reveal-silver-score-value">0</span>
+                        <span class="reveal-score-max" id="reveal-silver-score-max">/100</span>
+                    </div>
                 </div>
-                <h2 class="reveal-project-name" id="method-reveal-project-name" style="font-size: 2.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.8rem; line-height: 1.25; font-family: 'Outfit', sans-serif;">Proje Adı</h2>
-                <p class="reveal-project-team" id="method-reveal-project-team" style="font-size: 1.4rem; color: var(--text-secondary); margin-bottom: 0;">Ekip Adı</p>
+
+                <!-- 1st Place Card (Gold) -->
+                <div class="reveal-card rank-gold-card" id="reveal-gold-card">
+                    <div class="reveal-rank-badge rank-gold">
+                        <span>#1</span>
+                    </div>
+                    <h2 class="reveal-project-name" id="reveal-gold-project-name">Proje Adı</h2>
+                    <p class="reveal-project-team" id="reveal-gold-project-team">Ekip Adı</p>
+                    <div class="reveal-score-display">
+                        <span class="reveal-score-value" id="reveal-gold-score-value">0</span>
+                        <span class="reveal-score-max" id="reveal-gold-score-max">/100</span>
+                    </div>
+                </div>
             </div>
         </div>
 

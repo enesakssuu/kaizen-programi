@@ -10,8 +10,6 @@
     let jurors = [];
     let allScores = {};
     let rankings = [];
-    let methodRankings = [];
-    let methodCriterion = null;
     let presentationStatus = null;
     let settings = {};
     let revealInProgress = false;
@@ -48,9 +46,6 @@
     // Scores
     const $refreshScoresBtn = document.getElementById('refresh-scores-btn');
     const $rankingsTbody = document.getElementById('rankings-tbody');
-    const $methodRankingsCard = document.getElementById('method-rankings-card');
-    const $methodQuestionBadge = document.getElementById('method-question-badge');
-    const $methodRankingsTbody = document.getElementById('method-rankings-tbody');
     const $matrixThead = document.getElementById('matrix-thead');
     const $matrixTbody = document.getElementById('matrix-tbody');
 
@@ -62,15 +57,12 @@
     const $modeTimerBtn = document.getElementById('mode-timer-btn');
     const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
     const $modeWelcomeBtn = document.getElementById('mode-welcome-btn');
-    const $modeMethodBtn = document.getElementById('mode-method-btn');
     const $timerTargetInput = document.getElementById('timer-target-input');
     const $timerSetBtn = document.getElementById('timer-set-btn');
     const $adminTimerDisplay = document.getElementById('admin-timer-display');
     const $timerStartBtn = document.getElementById('timer-start-btn');
     const $timerPauseBtn = document.getElementById('timer-pause-btn');
     const $timerResetBtn = document.getElementById('timer-reset-btn');
-    const $revealMethodBtn = document.getElementById('reveal-method-btn');
-    const $resetMethodBtn = document.getElementById('reset-method-btn');
 
     // Settings
     const $countdownInput = document.getElementById('countdown-seconds-input');
@@ -131,15 +123,10 @@
         if ($modeWelcomeBtn) {
             $modeWelcomeBtn.addEventListener('click', () => changePresentationMode('welcome'));
         }
-        if ($modeMethodBtn) {
-            $modeMethodBtn.addEventListener('click', () => changePresentationMode('method'));
-        }
         $timerSetBtn.addEventListener('click', setTimerDuration);
         $timerStartBtn.addEventListener('click', () => controlTimer('start'));
         $timerPauseBtn.addEventListener('click', () => controlTimer('pause'));
         $timerResetBtn.addEventListener('click', () => controlTimer('reset'));
-        if ($revealMethodBtn) $revealMethodBtn.addEventListener('click', revealMethod);
-        if ($resetMethodBtn) $resetMethodBtn.addEventListener('click', resetMethod);
 
         // Settings
         $saveCountdownBtn.addEventListener('click', saveCountdown);
@@ -392,10 +379,7 @@
             jurors = data.jurors;
             allScores = data.scores;
             rankings = data.rankings;
-            methodRankings = data.methodRankings || [];
-            methodCriterion = data.methodCriterion || null;
             renderRankings();
-            renderMethodRankings();
             renderScoreMatrix();
         } catch (err) {
             showToast('Puanlar yüklenemedi', 'error');
@@ -433,44 +417,7 @@
         });
     }
 
-    function renderMethodRankings() {
-        if (!methodCriterion) {
-            $methodRankingsCard.style.display = 'none';
-            return;
-        }
-
-        $methodRankingsCard.style.display = 'block';
-        $methodQuestionBadge.textContent = `${methodCriterion.label}`;
-
-        $methodRankingsTbody.innerHTML = '';
-
-        if (methodRankings.length === 0) {
-            $methodRankingsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">Henüz puanlanmış proje yok</td></tr>';
-            return;
-        }
-
-        methodRankings.forEach((r, index) => {
-            const rank = index + 1;
-            let rankClass = '';
-            if (rank === 1) rankClass = 'rank-1';
-            else if (rank === 2) rankClass = 'rank-2';
-            else if (rank === 3) rankClass = 'rank-3';
-
-            const maxScore = methodCriterion.maxScore || 25;
-            const percent = (r.averageScore / maxScore) * 100;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><span class="rank-cell ${rankClass}">${rank}</span></td>
-                <td style="font-weight:600;">${escapeHtml(r.projectName)}</td>
-                <td style="color:var(--text-muted);">${escapeHtml(r.projectTeam)}</td>
-                <td style="font-weight:700; font-family:var(--font-display);">${r.averageScore.toFixed(1)} / ${maxScore}</td>
-                <td><span class="badge ${r.jurorCount === r.totalJurors ? 'badge-success' : 'badge-warning'}">${r.jurorCount} / ${r.totalJurors}</span></td>
-                <td><span class="score-bar-mini"><span class="score-bar-mini-fill" style="width:${percent}%"></span></span></td>
-            `;
-            $methodRankingsTbody.appendChild(row);
-        });
-    }
+    // Method rankings rendering removed
 
     function renderScoreMatrix() {
         $matrixThead.innerHTML = '';
@@ -597,7 +544,6 @@
         if ($modeWelcomeBtn) $modeWelcomeBtn.className = mode === 'welcome' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
         if ($modeTimerBtn) $modeTimerBtn.className = mode === 'timer' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
         if ($modeWaitingBtn) $modeWaitingBtn.className = mode === 'waiting' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
-        if ($modeMethodBtn) $modeMethodBtn.className = mode === 'method' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
     }
 
     async function changePresentationMode(mode) {
@@ -730,7 +676,7 @@
             $revealNextBtn.textContent = 'Açıklama devam ediyor...';
         } else {
             $revealNextBtn.disabled = false;
-            $revealNextBtn.textContent = `${nextRank}. Sırayı Açıkla`;
+            $revealNextBtn.textContent = nextRank === 2 ? `1. ve 2. Sırayı Açıkla` : `${nextRank}. Sırayı Açıkla`;
             $revealInfo.textContent = `Geri sayım: ${settings.countdownSeconds || 10} saniye`;
         }
     }
@@ -745,9 +691,10 @@
             const data = await res.json();
 
             if (data.success) {
-                showToast(`#${data.rank} açıklanıyor: ${data.project.projectName}`, 'success');
+                showToast(data.rank === 2 ? `1. ve 2. sıralar açıklanıyor` : `#${data.rank} açıklanıyor: ${data.project.projectName}`, 'success');
 
-                const revealDuration = data.rank === 1 ? (settings.winnerRevealSeconds || 10) : 5;
+                const isWinnerReveal = (data.rank === 1 || (data.rank === 2 && data.remaining === 0));
+                const revealDuration = isWinnerReveal ? (settings.winnerRevealSeconds || 10) : 5;
                 const waitTime = ((settings.countdownSeconds || 10) + revealDuration + 1) * 1000;
                 setTimeout(async () => {
                     revealInProgress = false;
@@ -778,34 +725,7 @@
         }
     }
 
-    async function revealMethod() {
-        try {
-            const res = await fetch('/api/presentation/reveal-method', { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                showToast('Metot Ödülü açıklaması başlatıldı!', 'success');
-                await loadPresentationStatus();
-            } else {
-                showToast(data.message || 'Hata oluştu', 'error');
-            }
-        } catch (err) {
-            showToast('Bağlantı hatası', 'error');
-        }
-    }
-
-    async function resetMethod() {
-        if (!confirm('Metot Ödülü sunum durumunu sıfırlamak istediğinizden emin misiniz?')) return;
-        try {
-            const res = await fetch('/api/presentation/reset-method', { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                showToast('Metot Ödülü sunumu sıfırlandı.', 'info');
-                await loadPresentationStatus();
-            }
-        } catch (err) {
-            showToast('Sıfırlama hatası', 'error');
-        }
-    }
+    // Method reveal methods removed
 
     // ==================== SETTINGS ====================
     async function loadSettings() {
@@ -842,18 +762,13 @@
             card.className = 'criterion-card';
             card.dataset.index = index;
  
-            const isMethodChecked = c.isMethod ? 'checked' : '';
             const isRadio = c.type !== 'checkbox';
             const optionsText = (c.options || []).join('\n');
 
             card.innerHTML = `
                 <div class="criterion-card-header">
                     <span class="criterion-card-title">${index + 1}. Değerlendirme Kriteri</span>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto; margin-right: 1rem;">
-                        <input type="radio" name="method-criterion-select" id="method-select-${index}" class="q-is-method" ${isMethodChecked} data-index="${index}">
-                        <label for="method-select-${index}" style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); cursor:pointer;">Metot Ödülü Sorusu</label>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm question-delete-btn" data-index="${index}">Sil</button>
+                    <button type="button" class="btn btn-danger btn-sm question-delete-btn" data-index="${index}" style="margin-left: auto;">Sil</button>
                 </div>
                 <div class="criterion-card-body">
                     <div class="form-group" style="margin-bottom:0;">
@@ -864,7 +779,7 @@
                         <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">Tür</label>
                             <select class="form-input q-type" data-index="${index}">
-                                <option value="radio" ${isRadio ? 'selected' : ''}>Radio (1-5)</option>
+                                <option value="radio" ${isRadio ? 'selected' : ''}>Radio (1-10)</option>
                                 <option value="checkbox" ${!isRadio ? 'selected' : ''}>Checkbox (Çoklu)</option>
                             </select>
                         </div>
@@ -875,7 +790,7 @@
                         <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">Maks. Puan</label>
                             <input type="number" class="form-input q-max-score" value="${c.maxScore}" data-index="${index}" min="1" max="100" readonly 
-                                   style="background: #eee; cursor: not-allowed;" title="Otomatik hesaplanır (ağırlık × 5)">
+                                   style="background: #eee; cursor: not-allowed;" title="Otomatik hesaplanır (ağırlık × 10)">
                         </div>
                     </div>
                     <div class="form-group criterion-card-desc-group" style="margin-bottom:0; margin-top:0.5rem;">
@@ -898,7 +813,7 @@
 
             function updateMaxScore() {
                 const w = parseInt(weightInput.value) || 1;
-                maxScoreInput.value = w * 5;
+                maxScoreInput.value = w * 10;
             }
 
             typeSelect.addEventListener('change', function() {
@@ -934,16 +849,14 @@
             const type = card.querySelector('.q-type').value || 'radio';
             const weight = parseInt(card.querySelector('.q-weight').value) || 1;
             const description = card.querySelector('.q-desc').value.trim();
-            const isMethod = card.querySelector('.q-is-method') ? card.querySelector('.q-is-method').checked : false;
             
             const criterion = {
                 id: `c${idx + 1}`,
                 label: label,
                 type: type,
                 weight: weight,
-                maxScore: weight * 5,
-                description: description,
-                isMethod: isMethod
+                maxScore: weight * 10,
+                description: description
             };
             
             // Check if checkbox type has options
@@ -964,7 +877,7 @@
             id: `c${currentQuestions.length + 1}`,
             label: '',
             type: 'radio',
-            weight: 4,
+            weight: 2,
             maxScore: 20,
             description: ''
         });

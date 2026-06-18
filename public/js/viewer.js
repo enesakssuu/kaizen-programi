@@ -22,8 +22,6 @@
         revealEnabled: true,
         revealUrl: ""
     };
-    let isMethodCountdownActive = false;
-    let isMethodRevealed = false;
 
     // ==================== DOM ELEMENTS ====================
     const $particles = document.getElementById('particles');
@@ -50,11 +48,16 @@
     const $confettiContainer = document.getElementById('confetti-container');
     const $viewerStage = document.getElementById('viewer-stage');
     
-    const $methodState = document.getElementById('method-state');
     const $rankingsRevealCard = document.getElementById('rankings-reveal-card');
-    const $methodRevealCard = document.getElementById('method-reveal-card');
-    const $methodRevealProjectName = document.getElementById('method-reveal-project-name');
-    const $methodRevealProjectTeam = document.getElementById('method-reveal-project-team');
+    const $revealTwoContainer = document.getElementById('reveal-two-container');
+    const $revealSilverProjectName = document.getElementById('reveal-silver-project-name');
+    const $revealSilverProjectTeam = document.getElementById('reveal-silver-project-team');
+    const $revealSilverScoreValue = document.getElementById('reveal-silver-score-value');
+    const $revealSilverScoreMax = document.getElementById('reveal-silver-score-max');
+    const $revealGoldProjectName = document.getElementById('reveal-gold-project-name');
+    const $revealGoldProjectTeam = document.getElementById('reveal-gold-project-team');
+    const $revealGoldScoreValue = document.getElementById('reveal-gold-score-value');
+    const $revealGoldScoreMax = document.getElementById('reveal-gold-score-max');
     const $countdownRankLabel = document.querySelector('.countdown-rank-label');
     const $countdownSubtext = document.querySelector('.countdown-subtext');
 
@@ -163,17 +166,6 @@
             soundSettings = data.settings.sounds;
         }
         presentationMode = data.presentation?.mode || 'timer';
-        
-        // Check if we are in method mode
-        if (presentationMode === 'method') {
-            handleMethodStatusUpdate(data);
-            return;
-        }
-
-        // If we were in method mode but just switched back to normal
-        if (isMethodCountdownActive || isMethodRevealed) {
-            handleMethodReset();
-        }
 
         const revealed = data.presentation?.revealedRanks || [];
         
@@ -192,7 +184,13 @@
             // Find ranks in revealed that we haven't processed yet
             const newRanks = revealed.filter(r => !revealedProjects.some(rp => rp.rank === r));
             
-            if (newRanks.length > 0) {
+            if (newRanks.includes(2) && newRanks.includes(1)) {
+                // Simultaneous reveal of 1 and 2
+                if (!isAnimating) {
+                    isAnimating = true;
+                    startTopTwoCountdown(rankings[0], rankings[1]);
+                }
+            } else if (newRanks.length > 0) {
                 newRanks.sort((a, b) => a - b);
                 const nextToReveal = newRanks[0];
                 const projectIndex = nextToReveal - 1;
@@ -225,137 +223,7 @@
         updateWaitingVisibility();
     }
 
-    function handleMethodStatusUpdate(data) {
-        const presentation = data.presentation || {};
-        const methodRankings = data.methodRankings || [];
-        
-        // If method reveal has not started, reset to waiting
-        if (!presentation.methodRevealStarted) {
-            handleMethodReset();
-            return;
-        }
-
-        const winner = methodRankings[0];
-        if (!winner) {
-            return; // No projects/scores yet
-        }
-
-        const now = Date.now() + serverTimeOffset;
-        const remaining = Math.max(0, Math.floor((presentation.methodRevealTimestamp - now) / 1000));
-
-        if (remaining > 0 && !presentation.methodRevealed) {
-            // Countdown phase
-            if (!isAnimating) {
-                isAnimating = true;
-                startMethodCountdown(remaining, countdownSeconds, winner);
-            }
-        } else {
-            // Reveal phase
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            if (isAnimating && isMethodCountdownActive) {
-                isAnimating = false;
-                isMethodCountdownActive = false;
-                hideOverlay($countdownOverlay);
-                showMethodWinner(winner);
-            } else if (!isAnimating && !isMethodRevealed) {
-                showMethodWinner(winner);
-            }
-        }
-        updateWaitingVisibility();
-    }
-
-    function handleMethodReset() {
-        if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-        }
-        if (revealTimeout) {
-            clearTimeout(revealTimeout);
-            revealTimeout = null;
-        }
-        isAnimating = false;
-        isMethodCountdownActive = false;
-        isMethodRevealed = false;
-
-        hideOverlay($countdownOverlay);
-        hideOverlay($revealOverlay);
-        if ($methodRevealCard) $methodRevealCard.classList.add('hidden');
-        if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
-        $confettiContainer.classList.add('hidden');
-        $confettiContainer.innerHTML = '';
-        updateWaitingVisibility();
-    }
-
-    function startMethodCountdown(initialRemaining, totalDuration, winner) {
-        isMethodCountdownActive = true;
-        
-        if ($methodState) $methodState.classList.add('hidden');
-        $waitingState.classList.add('hidden');
-        if ($welcomeState) $welcomeState.classList.add('hidden');
-        
-        showOverlay($countdownOverlay);
-        hideOverlay($revealOverlay);
-
-        if ($countdownRankLabel) {
-            $countdownRankLabel.innerHTML = 'Açıklanacak Ödül: <span style="color: #00c6ff;" id="countdown-rank-text">METOT ÖDÜLÜ</span>';
-        }
-        if ($countdownSubtext) {
-            $countdownSubtext.textContent = 'Metot Ödülü hazırlanıyor...';
-        }
-
-        // Reset ring
-        $ringProgress.style.transition = 'none';
-        $ringProgress.style.strokeDasharray = CIRCUMFERENCE;
-        $ringProgress.style.strokeDashoffset = '0';
-
-        updateCountdownDisplay(initialRemaining, totalDuration);
-        playTick();
-  
-        void $ringProgress.offsetWidth;
-        $ringProgress.style.transition = 'stroke-dashoffset 1s linear';
-  
-        let remaining = initialRemaining;
-        countdownInterval = setInterval(() => {
-            remaining--;
-            if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-                isAnimating = false;
-                isMethodCountdownActive = false;
-                hideOverlay($countdownOverlay);
-                showMethodWinner(winner);
-            } else {
-                updateCountdownDisplay(remaining, totalDuration);
-                playTick();
-            }
-        }, 1000);
-    }
-
-    function showMethodWinner(winner) {
-        isMethodRevealed = true;
-        
-        if ($methodState) $methodState.classList.add('hidden');
-        $waitingState.classList.add('hidden');
-        if ($welcomeState) $welcomeState.classList.add('hidden');
-        
-        showOverlay($revealOverlay);
-        
-        if ($rankingsRevealCard) $rankingsRevealCard.classList.add('hidden');
-        if ($methodRevealCard) $methodRevealCard.classList.remove('hidden');
-
-        if ($methodRevealProjectName) {
-            $methodRevealProjectName.textContent = winner.projectName;
-        }
-        if ($methodRevealProjectTeam) {
-            $methodRevealProjectTeam.textContent = winner.projectTeam || 'Ekip Belirtilmemiş';
-        }
-
-        playReveal();
-        launchConfetti(1);
-    }
+    // Method handlers removed
 
     function syncTimer(timer) {
         const stateKey = `${timer.isRunning}_${timer.duration}_${timer.remaining}_${timer.lastUpdated}_${timer.targetTimestamp}`;
@@ -420,14 +288,11 @@
         hideOverlay($countdownOverlay);
         hideOverlay($revealOverlay);
         if ($welcomeState) $welcomeState.classList.add('hidden');
-        if ($methodState) $methodState.classList.add('hidden');
-        if ($methodRevealCard) $methodRevealCard.classList.add('hidden');
+        if ($revealTwoContainer) $revealTwoContainer.classList.add('hidden');
         if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
         $confettiContainer.classList.add('hidden');
         $confettiContainer.innerHTML = '';
         isAnimating = false;
-        isMethodCountdownActive = false;
-        isMethodRevealed = false;
         updateWaitingVisibility();
     }
 
@@ -436,7 +301,6 @@
         // Hide waiting and welcome states, show countdown
         $waitingState.classList.add('hidden');
         if ($welcomeState) $welcomeState.classList.add('hidden');
-        if ($methodState) $methodState.classList.add('hidden');
         showOverlay($countdownOverlay);
         hideOverlay($revealOverlay);
 
@@ -489,7 +353,6 @@
         showOverlay($revealOverlay);
         playReveal();
  
-        if ($methodRevealCard) $methodRevealCard.classList.add('hidden');
         if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
 
         // Set rank badge class
@@ -574,7 +437,7 @@
 
     function updateRankingsTitle() {
         if (revealedProjects.length > 0) {
-            $rankingsTitle.textContent = `SIRALAMA (${revealedProjects.length}/10)`;
+            $rankingsTitle.textContent = `SIRALAMA`;
         } else {
             $rankingsTitle.textContent = '';
         }
@@ -582,25 +445,6 @@
 
     // ==================== UI HELPERS ====================
     function updateWaitingVisibility() {
-        // If we are in method mode
-        if (presentationMode === 'method') {
-            $timerState.classList.add('hidden');
-            $waitingState.classList.add('hidden');
-            if ($welcomeState) $welcomeState.classList.add('hidden');
-            $rankingsSection.classList.add('hidden');
-            
-            if (isAnimating || isMethodCountdownActive || isMethodRevealed) {
-                if ($methodState) $methodState.classList.add('hidden');
-            } else {
-                if ($methodState) $methodState.classList.remove('hidden');
-            }
-            $viewerStage.classList.add('timer-only');
-            return;
-        }
-
-        // Ensure method state is hidden in non-method modes
-        if ($methodState) $methodState.classList.add('hidden');
-
         if (isAnimating || revealedProjects.length > 0) {
             $waitingState.classList.add('hidden');
             $timerState.classList.add('hidden');
@@ -629,6 +473,86 @@
             $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
         }
+    }
+
+    // ==================== SIMULTANEOUS TOP TWO REVEAL ====================
+    function startTopTwoCountdown(project1st, project2nd) {
+        $waitingState.classList.add('hidden');
+        if ($welcomeState) $welcomeState.classList.add('hidden');
+        showOverlay($countdownOverlay);
+        hideOverlay($revealOverlay);
+
+        if ($countdownRankLabel) {
+            $countdownRankLabel.innerHTML = 'Açıklanacak Sıra: <span id="countdown-rank-text">1. ve 2. BİRİNCİLİK</span>';
+        }
+        if ($countdownSubtext) {
+            $countdownSubtext.textContent = 'Büyük Final!';
+        }
+
+        // Reset ring
+        $ringProgress.style.transition = 'none';
+        $ringProgress.style.strokeDasharray = CIRCUMFERENCE;
+        $ringProgress.style.strokeDashoffset = '0';
+
+        let remaining = countdownSeconds;
+        updateCountdownDisplay(remaining, countdownSeconds);
+        playTick();
+
+        void $ringProgress.offsetWidth;
+        $ringProgress.style.transition = 'stroke-dashoffset 1s linear';
+
+        countdownInterval = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                hideOverlay($countdownOverlay);
+                showTopTwoReveal(project1st, project2nd);
+            } else {
+                updateCountdownDisplay(remaining, countdownSeconds);
+                playTick();
+            }
+        }, 1000);
+    }
+
+    function showTopTwoReveal(project1st, project2nd) {
+        showOverlay($revealOverlay);
+        playReveal();
+
+        if ($rankingsRevealCard) $rankingsRevealCard.classList.add('hidden');
+        if ($revealTwoContainer) $revealTwoContainer.classList.remove('hidden');
+
+        // Populate Silver (2nd place)
+        $revealSilverProjectName.textContent = project2nd.projectName;
+        $revealSilverProjectTeam.textContent = project2nd.projectTeam || '';
+        $revealSilverScoreValue.textContent = project2nd.averageScore.toFixed(1);
+        $revealSilverScoreMax.textContent = '/' + (project2nd.maxScore || 100);
+
+        // Populate Gold (1st place)
+        $revealGoldProjectName.textContent = project1st.projectName;
+        $revealGoldProjectTeam.textContent = project1st.projectTeam || '';
+        $revealGoldScoreValue.textContent = project1st.averageScore.toFixed(1);
+        $revealGoldScoreMax.textContent = '/' + (project1st.maxScore || 100);
+
+        // Continuous celebration for top places!
+        launchConfetti(1); 
+
+        const revealDuration = winnerRevealSeconds * 1000;
+
+        revealTimeout = setTimeout(() => {
+            hideOverlay($revealOverlay);
+            $confettiContainer.classList.add('hidden');
+            $confettiContainer.innerHTML = '';
+            
+            // Add both to the rankings list
+            addToList(2, project2nd, false);
+            addToList(1, project1st, false);
+            
+            updateRankingsTitle();
+            isAnimating = false;
+            updateWaitingVisibility();
+            revealTimeout = null;
+        }, revealDuration);
     }
 
     function showOverlay(el) {

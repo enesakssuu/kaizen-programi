@@ -8,8 +8,22 @@
     let criteria = [];
     let currentScoringProject = null;
 
-    const IMPACT_LABELS = ['', 'Çok Düşük', 'Düşük', 'Orta', 'İyi', 'Çok İyi'];
-    const IMPACT_CLASSES = ['', 'impact-very-low', 'impact-low', 'impact-mid', 'impact-good', 'impact-great'];
+    const IMPACT_LABELS = [
+        '', 
+        'Çok Düşük', 'Çok Düşük', 
+        'Düşük', 'Düşük', 
+        'Orta', 'Orta', 
+        'İyi', 'İyi', 
+        'Çok İyi', 'Çok İyi'
+    ];
+    const IMPACT_CLASSES = [
+        '', 
+        'impact-very-low', 'impact-very-low', 
+        'impact-low', 'impact-low', 
+        'impact-mid', 'impact-mid', 
+        'impact-good', 'impact-good', 
+        'impact-great', 'impact-great'
+    ];
 
     const $loginScreen = document.getElementById('login-screen');
     const $dashboard = document.getElementById('dashboard');
@@ -149,11 +163,11 @@
 
     function checkboxCountToLevel(count) {
         if (count === 0) return 0;
-        if (count === 1) return 1;
-        if (count === 2) return 2;
-        if (count === 3) return 3;
-        if (count === 4 || count === 5) return 4;
-        return 5;
+        if (count === 1) return 2;
+        if (count === 2) return 4;
+        if (count === 3) return 6;
+        if (count === 4 || count === 5) return 8;
+        return 10;
     }
 
     // ==================== RENDER PROJECTS ====================
@@ -248,10 +262,10 @@
                     <div class="checkbox-score-display" id="checkbox-score-${ci}">
                         <div class="checkbox-score-info">
                             <span class="checkbox-count">Seçilen alan: <strong id="checkbox-count-val-${ci}">${count}</strong></span>
-                            <span class="checkbox-level">Kazanım skoru: <strong id="checkbox-level-val-${ci}">${level}</strong>/5</span>
+                            <span class="checkbox-level">Kazanım skoru: <strong id="checkbox-level-val-${ci}">${level}</strong>/10</span>
                         </div>
                         <div class="checkbox-weighted-score">
-                            <span id="checkbox-weighted-${ci}">${level * (criterion.weight || 4)}</span>
+                            <span id="checkbox-weighted-${ci}">${level * (criterion.weight || 2)}</span>
                             <span class="checkbox-weighted-max">/${criterion.maxScore}</span>
                         </div>
                     </div>
@@ -275,7 +289,7 @@
                         const newLevel = checkboxCountToLevel(newCount);
                         document.getElementById(`checkbox-count-val-${ci}`).textContent = newCount;
                         document.getElementById(`checkbox-level-val-${ci}`).textContent = newLevel;
-                        document.getElementById(`checkbox-weighted-${ci}`).textContent = newLevel * (criterion.weight || 4);
+                        document.getElementById(`checkbox-weighted-${ci}`).textContent = newLevel * (criterion.weight || 2);
                         updateTotal();
                     });
                 });
@@ -283,19 +297,18 @@
             }
 
             // ---- RADIO CRITERION ----
-            const existingVal = existingScore ? existingScore.scores[ci] : 3;
-            const currentVal = (typeof existingVal === 'number' && existingVal >= 1 && existingVal <= 5) ? existingVal : 3;
-            const methodBadge = criterion.isMethod ? ` <span class="score-badge--method">METOT</span>` : '';
+            const existingVal = existingScore ? existingScore.scores[ci] : 6;
+            const currentVal = (typeof existingVal === 'number' && existingVal >= 1 && existingVal <= 10) ? existingVal : 6;
 
             wrapper.innerHTML = `
                 <div class="score-question-label">
                     <span class="score-question-number">${ci + 1}</span>
-                    <span class="score-criterion-label">${escapeHtml(criterion.label)}${methodBadge}</span>
+                    <span class="score-criterion-label">${escapeHtml(criterion.label)}</span>
                     <span class="score-criterion-max">/ ${criterion.maxScore} puan</span>
                 </div>
                 <p class="score-criterion-desc">${escapeHtml(criterion.description)}</p>
                 <div class="radio-score-group" id="radio-group-${ci}">
-                    ${[1, 2, 3, 4, 5].map(v => `
+                    ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => `
                         <label class="radio-score-item ${v === currentVal ? 'selected' : ''}">
                             <input type="radio" name="score-radio-${ci}" value="${v}" 
                                    data-ci="${ci}" class="radio-input" ${v === currentVal ? 'checked' : ''}>
@@ -305,12 +318,12 @@
                 </div>
                 <div class="impact-display" id="impact-display-${ci}">
                     <div class="impact-bar">
-                        <div class="impact-bar-fill ${IMPACT_CLASSES[currentVal]}" id="impact-bar-fill-${ci}" style="width: ${currentVal * 20}%"></div>
+                        <div class="impact-bar-fill ${IMPACT_CLASSES[currentVal]}" id="impact-bar-fill-${ci}" style="width: ${currentVal * 10}%"></div>
                     </div>
                     <div class="impact-info">
                         <span class="impact-label ${IMPACT_CLASSES[currentVal]}" id="impact-label-${ci}">Etki: ${IMPACT_LABELS[currentVal]}</span>
                         <span class="impact-weighted-score">
-                            <span id="impact-weighted-${ci}">${currentVal * (criterion.weight || 1)}</span>
+                            <span id="impact-weighted-${ci}">${currentVal * (criterion.weight || 2)}</span>
                             <span class="impact-weighted-max">/${criterion.maxScore}</span>
                         </span>
                     </div>
@@ -332,11 +345,11 @@
                     const barFill = document.getElementById(`impact-bar-fill-${ci}`);
                     const label = document.getElementById(`impact-label-${ci}`);
                     const weighted = document.getElementById(`impact-weighted-${ci}`);
-                    barFill.style.width = (val * 20) + '%';
+                    barFill.style.width = (val * 10) + '%';
                     barFill.className = 'impact-bar-fill ' + IMPACT_CLASSES[val];
                     label.textContent = 'Etki: ' + IMPACT_LABELS[val];
                     label.className = 'impact-label ' + IMPACT_CLASSES[val];
-                    weighted.textContent = val * (criterion.weight || 1);
+                    weighted.textContent = val * (criterion.weight || 2);
                     updateTotal();
                 });
             });
@@ -357,11 +370,11 @@
             if (c.type === 'checkbox') {
                 const allChecked = document.querySelectorAll(`#checkbox-group-${ci} .checkbox-input:checked`);
                 const level = checkboxCountToLevel(allChecked.length);
-                total += level * (c.weight || 4);
+                total += level * (c.weight || 2);
             } else {
                 const checked = document.querySelector(`input[name="score-radio-${ci}"]:checked`);
                 if (checked) {
-                    total += parseInt(checked.value) * (c.weight || 1);
+                    total += parseInt(checked.value) * (c.weight || 2);
                 }
             }
         });
@@ -379,7 +392,7 @@
                 return Array.from(allChecked).map(cb => cb.dataset.opt);
             } else {
                 const checked = document.querySelector(`input[name="score-radio-${ci}"]:checked`);
-                return checked ? parseInt(checked.value) : 3;
+                return checked ? parseInt(checked.value) : 6;
             }
         });
 
