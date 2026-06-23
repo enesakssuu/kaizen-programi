@@ -60,7 +60,7 @@ function getDefaultData() {
         jurors: [],
         scores: {},
         presentation: {
-            mode: "timer", // "timer", "waiting"
+            mode: "waiting", // "waiting", "timer"
             revealedRanks: [],
             isRevealing: false,
             currentRank: null,
@@ -574,6 +574,7 @@ app.post('/api/settings/reset/projects', async (req, res) => {
     data.presentation.revealedRanks = [];
     data.presentation.isRevealing = false;
     data.presentation.currentRank = null;
+    data.presentation.mode = 'waiting';
     await writeData(data);
     res.json({ success: true });
 });
@@ -585,6 +586,7 @@ app.post('/api/settings/reset/jurors', async (req, res) => {
     data.presentation.revealedRanks = [];
     data.presentation.isRevealing = false;
     data.presentation.currentRank = null;
+    data.presentation.mode = 'waiting';
     await writeData(data);
     res.json({ success: true });
 });
@@ -595,6 +597,7 @@ app.post('/api/settings/reset/scores', async (req, res) => {
     data.presentation.revealedRanks = [];
     data.presentation.isRevealing = false;
     data.presentation.currentRank = null;
+    data.presentation.mode = 'waiting';
     await writeData(data);
     res.json({ success: true });
 });
@@ -605,6 +608,7 @@ app.post('/api/settings/reset/all', async (req, res) => {
     data.jurors = [];
     data.scores = {};
     data.presentation = getDefaultData().presentation;
+    data.presentation.mode = 'waiting';
     await writeData(data);
     res.json({ success: true });
 });
@@ -648,6 +652,7 @@ app.post('/api/presentation/reveal', async (req, res) => {
             data.presentation.revealedRanks.push(1);
         }
         data.presentation.currentRank = 2;
+        data.presentation.mode = 'podium'; // Set to podium mode automatically
         await writeData(data);
         return res.json({
             success: true,
@@ -667,6 +672,7 @@ app.post('/api/presentation/reveal', async (req, res) => {
 
     data.presentation.revealedRanks.push(rankToReveal);
     data.presentation.currentRank = rankToReveal;
+    data.presentation.mode = 'podium'; // Set to podium mode automatically
     await writeData(data);
 
     res.json({
@@ -682,6 +688,7 @@ app.post('/api/presentation/reset', async (req, res) => {
     data.presentation.revealedRanks = [];
     data.presentation.isRevealing = false;
     data.presentation.currentRank = null;
+    data.presentation.mode = 'waiting'; // Reset mode back to waiting
     await writeData(data);
     res.json({ success: true });
 });

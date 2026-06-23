@@ -550,8 +550,14 @@
             if ($scoreboardState) $scoreboardState.classList.remove('hidden');
             updateHeader('KAIZEN CANLI SKOR TABLOSU', 'Grup Değerlendirmeleri');
         } else if (presentationMode === 'podium') {
-            if ($podiumState) $podiumState.classList.remove('hidden');
-            updateHeader('KAIZEN PUANLAMA PODYUMU', 'Final Sonuçları');
+            if (revealedProjects.length === 0) {
+                $waitingState.classList.remove('hidden');
+                $viewerStage.classList.add('timer-only');
+                updateHeader('', '');
+            } else {
+                if ($podiumState) $podiumState.classList.remove('hidden');
+                updateHeader('KAIZEN PUANLAMA PODYUMU', 'Final Sonuçları');
+            }
         } else if (revealedProjects.length > 0) {
             $rankingsSection.classList.remove('hidden');
             updateHeader('', '');
