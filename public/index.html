@@ -132,7 +132,6 @@
                         <!-- 2. PLACE (SILVER) -->
                         <div class="podium-spot podium-silver hidden" id="spot-2">
                             <div class="podium-card card">
-                                <div class="podium-rank-badge rank-silver">2</div>
                                 <h3 class="podium-project-name" id="name-2">Proje Adı</h3>
                                 <p class="podium-project-team" id="team-2">Ekip Adı</p>
                                 <div class="podium-score-badge" id="score-2">0.0</div>
@@ -145,7 +144,22 @@
                         <!-- 1. PLACE (GOLD) -->
                         <div class="podium-spot podium-gold hidden" id="spot-1">
                             <div class="podium-card card">
-                                <div class="podium-rank-badge rank-gold">1</div>
+                                <div class="crown-container" style="display: block; top: -38px;">
+                                    <svg class="crown-svg" viewBox="0 0 24 24" width="56" height="56">
+                                        <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" fill="url(#gold-gradient-svg-podium)" stroke="#eab308" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <path d="M3 18h18v2H3v-2z" fill="url(#gold-gradient-svg-podium)" stroke="#eab308" stroke-width="1.5" stroke-linejoin="round"/>
+                                        <circle cx="2" cy="4" r="1.2" fill="#ffd700"/>
+                                        <circle cx="12" cy="4" r="1.2" fill="#ffd700"/>
+                                        <circle cx="22" cy="4" r="1.2" fill="#ffd700"/>
+                                        <defs>
+                                            <linearGradient id="gold-gradient-svg-podium" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0%" stop-color="#ffd700"/>
+                                                <stop offset="50%" stop-color="#f59e0b"/>
+                                                <stop offset="100%" stop-color="#b45309"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
                                 <h3 class="podium-project-name" id="name-1">Proje Adı</h3>
                                 <p class="podium-project-team" id="team-1">Ekip Adı</p>
                                 <div class="podium-score-badge" id="score-1">0.0</div>
@@ -158,7 +172,6 @@
                         <!-- 3. PLACE (BRONZE) -->
                         <div class="podium-spot podium-bronze hidden" id="spot-3">
                             <div class="podium-card card">
-                                <div class="podium-rank-badge rank-bronze">3</div>
                                 <h3 class="podium-project-name" id="name-3">Proje Adı</h3>
                                 <p class="podium-project-team" id="team-3">Ekip Adı</p>
                                 <div class="podium-score-badge" id="score-3">0.0</div>
@@ -199,6 +212,22 @@
         <div class="reveal-overlay hidden" id="reveal-overlay">
             <!-- Normal Rankings Card -->
             <div class="reveal-card" id="rankings-reveal-card">
+                <div class="crown-container">
+                    <svg class="crown-svg" viewBox="0 0 24 24" width="56" height="56">
+                        <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" fill="url(#gold-gradient-svg)" stroke="#eab308" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M3 18h18v2H3v-2z" fill="url(#gold-gradient-svg)" stroke="#eab308" stroke-width="1.5" stroke-linejoin="round"/>
+                        <circle cx="2" cy="4" r="1.2" fill="#ffd700"/>
+                        <circle cx="12" cy="4" r="1.2" fill="#ffd700"/>
+                        <circle cx="22" cy="4" r="1.2" fill="#ffd700"/>
+                        <defs>
+                            <linearGradient id="gold-gradient-svg" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#ffd700"/>
+                                <stop offset="50%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#b45309"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
                 <div class="reveal-rank-badge rank-default" id="reveal-rank-badge">
                     <span id="reveal-rank-num">#1</span>
                 </div>
@@ -227,6 +256,22 @@
 
                 <!-- 1st Place Card (Gold) -->
                 <div class="reveal-card rank-gold-card" id="reveal-gold-card">
+                    <div class="crown-container">
+                        <svg class="crown-svg" viewBox="0 0 24 24" width="56" height="56">
+                            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" fill="url(#gold-gradient-svg-2)" stroke="#eab308" stroke-width="1.5" stroke-linejoin="round"/>
+                            <path d="M3 18h18v2H3v-2z" fill="url(#gold-gradient-svg-2)" stroke="#eab308" stroke-width="1.5" stroke-linejoin="round"/>
+                            <circle cx="2" cy="4" r="1.2" fill="#ffd700"/>
+                            <circle cx="12" cy="4" r="1.2" fill="#ffd700"/>
+                            <circle cx="22" cy="4" r="1.2" fill="#ffd700"/>
+                            <defs>
+                                <linearGradient id="gold-gradient-svg-2" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#ffd700"/>
+                                    <stop offset="50%" stop-color="#f59e0b"/>
+                                    <stop offset="100%" stop-color="#b45309"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
                     <div class="reveal-rank-badge rank-gold">
                         <span>#1</span>
                     </div>
