@@ -941,6 +941,7 @@
     function playSound(url, type) {
         // Fallback to local files if no URL is set in DB settings
         const playUrl = url || (type === 'tick' ? '/sounds/countdown.mp3' : '/sounds/reveal.mp3');
+        console.log('Playing sound:', playUrl); // Debug log
         try {
             const audio = new Audio(playUrl);
             audio.volume = type === 'tick' ? 0.35 : 0.8;
