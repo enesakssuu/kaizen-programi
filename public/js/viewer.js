@@ -6,6 +6,7 @@
 
     // ==================== STATE ====================
     let revealedProjects = [];
+    let lastRenderedRanksStr = '';
     let rankings = [];
     let countdownSeconds = 10;
     let winnerRevealSeconds = 10;
@@ -333,6 +334,7 @@
         goldAlreadyRevealed = false;
 
         revealedProjects = [];
+        lastRenderedRanksStr = '';
         $rankingsList.innerHTML = '';
         $rankingsTitle.textContent = '';
         hideOverlay($countdownOverlay);
@@ -423,6 +425,7 @@
         else if (rank === 2) rankClass = 'rank-silver';
         else if (rank === 3) rankClass = 'rank-bronze';
 
+        if ($rankingsRevealCard) $rankingsRevealCard.className = 'reveal-card ' + rankClass;
         $revealRankBadge.className = 'reveal-rank-badge ' + rankClass;
         $revealRankNum.textContent = '#' + rank;
         $revealProjectName.textContent = project.projectName;
@@ -526,6 +529,11 @@
     }
 
     function updateWaitingVisibility() {
+        const $container = document.querySelector('.viewer-container');
+        if ($container) {
+            $container.classList.remove('show-podium-bg');
+        }
+
         if (isAnimating) {
             $waitingState.classList.add('hidden');
             $timerState.classList.add('hidden');
@@ -557,6 +565,9 @@
             } else {
                 if ($podiumState) $podiumState.classList.remove('hidden');
                 updateHeader('KAIZEN PUANLAMA PODYUMU', 'Final Sonuçları');
+                if ($container) {
+                    $container.classList.add('show-podium-bg');
+                }
             }
         } else if (revealedProjects.length > 0) {
             $rankingsSection.classList.remove('hidden');
@@ -670,6 +681,16 @@
     function renderPodium(data) {
         const listRankings = data.rankings || [];
         const revealedRanks = revealedProjects.map(rp => rp.rank);
+
+        const stateKey = revealedRanks.sort((a, b) => a - b).map(r => {
+            const proj = listRankings[r - 1];
+            return `${r}_${proj ? proj.averageScore.toFixed(1) : 0}`;
+        }).join(',');
+
+        if (stateKey === lastRenderedRanksStr) {
+            return;
+        }
+        lastRenderedRanksStr = stateKey;
 
         // Handle reset
         if (revealedRanks.length === 0) {

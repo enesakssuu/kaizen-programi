@@ -8,6 +8,17 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: background 0.8s ease-in-out;
+}
+
+.viewer-container.show-podium-bg {
+    background: linear-gradient(rgba(3, 7, 18, 0.45), rgba(3, 7, 18, 0.7)), url('/bg-kaizen.png') no-repeat center center !important;
+    background-size: cover !important;
+}
+
+.viewer-container.show-podium-bg .grid-overlay,
+.viewer-container.show-podium-bg .particles {
+    display: none !important;
 }
 
 /* Subtle ambient floating circles */
@@ -227,38 +238,53 @@
 }
 
 /* ==================== COUNTDOWN ==================== */
+/* ==================== COUNTDOWN ==================== */
 .countdown-overlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(245, 250, 255, 0.96);
-    backdrop-filter: blur(20px);
-    animation: fade-in 0.3s ease;
+    background: radial-gradient(circle at center, #0b1329 0%, #030712 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    animation: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+.countdown-overlay::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(10, 51, 139, 0.3) 0%, transparent 70%);
+    filter: blur(120px);
+    animation: pulse-glow-slow 8s infinite alternate ease-in-out;
+    pointer-events: none;
 }
 
 .countdown-rank-label {
     font-family: var(--font-display);
-    font-size: 1.4rem;
-    color: var(--text-secondary);
+    font-size: 1.8rem;
+    color: rgba(255, 255, 255, 0.65);
     font-weight: 600;
-    margin-bottom: 2rem;
-    letter-spacing: 0.05em;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .countdown-rank-label span {
-    color: var(--primary);
-    font-weight: 800;
+    color: #38bdf8;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
 }
 
 .countdown-circle {
     position: relative;
-    width: 220px;
-    height: 220px;
+    width: 240px;
+    height: 240px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -273,15 +299,16 @@
 
 .countdown-ring .ring-bg {
     fill: none;
-    stroke: rgba(0, 0, 0, 0.04);
+    stroke: rgba(255, 255, 255, 0.04);
     stroke-width: 4;
 }
 
 .countdown-ring .ring-progress {
     fill: none;
-    stroke: var(--primary);
-    stroke-width: 4;
+    stroke: #38bdf8;
+    stroke-width: 6;
     stroke-linecap: round;
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
     stroke-dasharray: 754;
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1s linear;
@@ -289,10 +316,11 @@
 
 .countdown-number {
     font-family: var(--font-display);
-    font-size: 6rem;
-    font-weight: 800;
-    color: var(--text-primary);
+    font-size: 8rem;
+    font-weight: 900;
+    color: #ffffff;
     z-index: 1;
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
 }
 
 .countdown-number.tick {
@@ -301,10 +329,9 @@
 
 @keyframes number-tick {
     0% {
-        transform: scale(1.1);
+        transform: scale(1.15);
         opacity: 0.8;
     }
-
     100% {
         transform: scale(1);
         opacity: 1;
@@ -312,41 +339,147 @@
 }
 
 .countdown-subtext {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-top: 2rem;
-    letter-spacing: 0.05em;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 2.5rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /* ==================== REVEAL ANIMATION ==================== */
 .reveal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.97);
-    backdrop-filter: blur(20px);
-    animation: fade-in 0.2s ease;
+    background: radial-gradient(circle at center, #0a0f24 0%, #030712 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+.reveal-overlay::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(10, 51, 139, 0.35) 0%, transparent 70%);
+    top: -150px;
+    left: -100px;
+    filter: blur(120px);
+    animation: pulse-glow-slow 8s infinite alternate ease-in-out;
+    pointer-events: none;
+}
+
+.reveal-overlay::after {
+    content: '';
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(252, 80, 0, 0.25) 0%, transparent 70%);
+    bottom: -200px;
+    right: -100px;
+    filter: blur(140px);
+    animation: pulse-glow-slow-reverse 10s infinite alternate ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes pulse-glow-slow {
+    0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+    50% { transform: scale(1.15) translate(30px, 40px); opacity: 1; }
+    100% { transform: scale(0.9) translate(-10px, 20px); opacity: 0.7; }
+}
+
+@keyframes pulse-glow-slow-reverse {
+    0% { transform: scale(1) translate(0, 0); opacity: 0.7; }
+    50% { transform: scale(1.1) translate(-40px, -20px); opacity: 1; }
+    100% { transform: scale(0.95) translate(10px, -30px); opacity: 0.8; }
 }
 
 .reveal-card {
     text-align: center;
-    animation: reveal-entrance 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 32px;
+    padding: 4.5rem 4rem;
+    width: 100%;
+    max-width: 580px;
+    box-shadow: 
+        0 30px 70px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 0 100px rgba(10, 51, 139, 0.15);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    position: relative;
+    overflow: hidden;
+    animation: reveal-entrance 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.reveal-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 45%,
+        rgba(255, 255, 255, 0.08) 50%,
+        transparent 55%
+    );
+    transform: rotate(45deg);
+    animation: shine-sweep 6s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes shine-sweep {
+    0% { transform: translate(-30%, -30%) rotate(45deg); }
+    100% { transform: translate(30%, 30%) rotate(45deg); }
+}
+
+/* Rank Gold specific glowing borders and shadows */
+.reveal-card.rank-gold {
+    border: 1.5px solid rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(45, 34, 18, 0.75) 100%);
+    box-shadow: 
+        0 30px 80px rgba(245, 158, 11, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 120px rgba(245, 158, 11, 0.1);
+}
+
+/* Rank Silver specific glowing borders and shadows */
+.reveal-card.rank-silver {
+    border: 1.5px solid rgba(148, 163, 184, 0.4);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 41, 59, 0.75) 100%);
+    box-shadow: 
+        0 30px 80px rgba(148, 163, 184, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 120px rgba(148, 163, 184, 0.08);
+}
+
+/* Rank Bronze specific glowing borders and shadows */
+.reveal-card.rank-bronze {
+    border: 1.5px solid rgba(234, 88, 12, 0.4);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(45, 24, 16, 0.75) 100%);
+    box-shadow: 
+        0 30px 80px rgba(234, 88, 12, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 120px rgba(234, 88, 12, 0.08);
 }
 
 @keyframes reveal-entrance {
     0% {
-        transform: scale(0.97);
+        transform: scale(0.9) translateY(20px);
         opacity: 0;
     }
-
     100% {
-        transform: scale(1);
+        transform: scale(1) translateY(0);
         opacity: 1;
     }
 }
@@ -355,75 +488,103 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     font-family: var(--font-display);
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    border: 1.5px solid;
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin-bottom: 2rem;
+    border: none;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
 }
 
 .reveal-rank-badge.rank-gold {
-    background: rgba(245, 158, 11, 0.06);
-    color: var(--gold-light);
-    border-color: var(--gold);
+    background: linear-gradient(135deg, #ffd700 0%, #eab308 50%, #ca8a04 100%);
+    color: #0f172a;
+    box-shadow: 0 0 35px rgba(234, 179, 8, 0.45);
 }
 
 .reveal-rank-badge.rank-silver {
-    background: rgba(148, 163, 184, 0.06);
-    color: #475569;
-    border-color: var(--silver);
+    background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 50%, #94a3b8 100%);
+    color: #0f172a;
+    box-shadow: 0 0 30px rgba(148, 163, 184, 0.35);
 }
 
 .reveal-rank-badge.rank-bronze {
-    background: rgba(234, 88, 12, 0.06);
-    color: var(--bronze-light);
-    border-color: var(--bronze);
+    background: linear-gradient(135deg, #ffedd5 0%, #ea580c 50%, #c2410c 100%);
+    color: #ffffff;
+    box-shadow: 0 0 30px rgba(234, 88, 12, 0.35);
 }
 
 .reveal-rank-badge.rank-default {
-    background: rgba(0, 0, 0, 0.02);
-    color: var(--text-primary);
-    border-color: var(--border);
+    background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+    color: #ffffff;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
 }
 
 .reveal-project-name {
     font-family: var(--font-display);
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+    line-height: 1.25;
 }
 
 .reveal-project-team {
-    font-size: 1.05rem;
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
+    font-size: 1.35rem;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 500;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 .reveal-score-display {
     display: inline-flex;
     align-items: baseline;
-    gap: 0.2rem;
-    padding: 0.5rem 1.4rem;
-    border-radius: var(--radius-md);
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
+    gap: 0.25rem;
+    padding: 0.8rem 2.2rem;
+    border-radius: 50px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .reveal-score-value {
     font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #38bdf8;
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+}
+
+/* Gold card should have gold scores */
+.rank-gold .reveal-score-value {
+    color: #fbbf24;
+    text-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
+}
+
+/* Silver card should have silver/slate scores */
+.rank-silver .reveal-score-value {
+    color: #e2e8f0;
+    text-shadow: 0 0 15px rgba(226, 232, 240, 0.5);
+}
+
+/* Bronze card should have bronze/orange scores */
+.rank-bronze .reveal-score-value {
+    color: #fb923c;
+    text-shadow: 0 0 15px rgba(251, 146, 60, 0.6);
 }
 
 .reveal-score-max {
-    font-size: 1rem;
-    color: var(--text-muted);
-    font-weight: 400;
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
 }
 
 /* ==================== RANKINGS LIST ==================== */
@@ -1491,12 +1652,18 @@
 
 .lower-rankings-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
     width: 100%;
     max-height: 30vh;
     overflow-y: auto;
     padding: 0.2rem;
+}
+
+@media (max-width: 768px) {
+    .lower-rankings-list {
+        grid-template-columns: 1fr;
+    }
 }
 
 .lower-rank-item {
