@@ -3,7 +3,7 @@
 .viewer-container {
     height: 100vh;
     max-height: 100vh;
-    background: linear-gradient(rgba(11, 19, 41, 0.65), rgba(3, 7, 18, 0.8)), url('/kaizen-bg.png') no-repeat center center;
+    background: linear-gradient(rgba(11, 19, 41, 0.65), rgba(3, 7, 18, 0.8)), url('../kaizen-bg.png') no-repeat center center;
     background-size: cover;
     position: relative;
     overflow: hidden;
@@ -13,7 +13,7 @@
 }
 
 .viewer-container.show-podium-bg {
-    background: linear-gradient(rgba(11, 19, 41, 0.35), rgba(3, 7, 18, 0.6)), url('/kaizen-bg.png') no-repeat center center !important;
+    background: linear-gradient(rgba(11, 19, 41, 0.35), rgba(3, 7, 18, 0.6)), url('../kaizen-bg.png') no-repeat center center !important;
     background-size: cover !important;
 }
 
@@ -248,7 +248,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(rgba(11, 19, 41, 0.75), rgba(3, 7, 18, 0.85)), url('/kaizen-bg.png') no-repeat center center;
+    background: linear-gradient(rgba(11, 19, 41, 0.75), rgba(3, 7, 18, 0.85)), url('../kaizen-bg.png') no-repeat center center;
     background-size: cover;
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
@@ -358,7 +358,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(rgba(10, 15, 36, 0.75), rgba(3, 7, 18, 0.85)), url('/kaizen-bg.png') no-repeat center center;
+    background: linear-gradient(rgba(10, 15, 36, 0.75), rgba(3, 7, 18, 0.85)), url('../kaizen-bg.png') no-repeat center center;
     background-size: cover;
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);

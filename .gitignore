@@ -4,6 +4,7 @@ browser/
 *.webp
 *.png
 !public/logo.png
+!public/kaizen-bg.png
 data/data.json
 .system_generated/
 .gemini/
