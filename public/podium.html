@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kaizen Yarışması - Podyum Sonuç Ekranı">
+    <title>Hisar Hospital | Kaizen Puanlama Podyumu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Fredoka:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/podium.css">
+</head>
+<body>
+    <div class="podium-screen-container">
+        <!-- Ambient particles -->
+        <div class="particles" id="particles"></div>
+        <div class="grid-overlay"></div>
+
+        <!-- Header -->
+        <header class="viewer-header">
+            <div class="header-logos">
+                <img src="https://hisarhospital.com/wp-content/uploads/2026/04/HH_50x220_pxel.png.webp" alt="Hisar Hospital Logo" class="header-logo-left">
+                <div class="header-divider"></div>
+                <img src="/logo.png" alt="Kaizen Logo" class="header-logo-right">
+            </div>
+            <h1 class="viewer-title">KAIZEN PUANLAMA PODYUMU</h1>
+            <p class="viewer-subtitle">Final Sonuçları</p>
+        </header>
+
+        <!-- Main Stage -->
+        <main class="podium-stage">
+            <!-- Waiting State (When no ranks are revealed yet) -->
+            <div class="waiting-state" id="podium-waiting-state">
+                <div class="waiting-logo-card">
+                    <div class="waiting-logo-container">
+                        <img src="/logo.png" alt="Kaizen Logo" class="waiting-logo-img">
+                    </div>
+                    <div class="waiting-visual">
+                        <div class="ring ring-1"></div>
+                        <div class="ring ring-2"></div>
+                        <div class="ring ring-3"></div>
+                        <div class="pulse-core"></div>
+                    </div>
+                </div>
+                <p class="waiting-text">Sonuçların açıklanması bekleniyor</p>
+                <p class="waiting-subtext">Dereceler açıklandığında podyum burada güncellenecektir.</p>
+            </div>
+
+            <!-- Active Podium (Shown once at least one rank is revealed) -->
+            <div class="active-podium-view hidden" id="active-podium-view">
+                <!-- Top 3 Podium Platform Grid -->
+                <div class="podium-grid">
+                    <!-- 2. PLACE (SILVER) -->
+                    <div class="podium-spot podium-silver hidden" id="spot-2">
+                        <div class="podium-card card">
+                            <div class="podium-rank-badge rank-silver">2</div>
+                            <h3 class="podium-project-name" id="name-2">Proje Adı</h3>
+                            <p class="podium-project-team" id="team-2">Ekip Adı</p>
+                            <div class="podium-score-badge" id="score-2">0.0</div>
+                        </div>
+                        <div class="podium-pedestal pedestal-silver">
+                            <span class="pedestal-num">II</span>
+                        </div>
+                    </div>
+
+                    <!-- 1. PLACE (GOLD) -->
+                    <div class="podium-spot podium-gold hidden" id="spot-1">
+                        <div class="podium-card card">
+                            <div class="podium-rank-badge rank-gold">1</div>
+                            <h3 class="podium-project-name" id="name-1">Proje Adı</h3>
+                            <p class="podium-project-team" id="team-1">Ekip Adı</p>
+                            <div class="podium-score-badge" id="score-1">0.0</div>
+                        </div>
+                        <div class="podium-pedestal pedestal-gold">
+                            <span class="pedestal-num">I</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. PLACE (BRONZE) -->
+                    <div class="podium-spot podium-bronze hidden" id="spot-3">
+                        <div class="podium-card card">
+                            <div class="podium-rank-badge rank-bronze">3</div>
+                            <h3 class="podium-project-name" id="name-3">Proje Adı</h3>
+                            <p class="podium-project-team" id="team-3">Ekip Adı</p>
+                            <div class="podium-score-badge" id="score-3">0.0</div>
+                        </div>
+                        <div class="podium-pedestal pedestal-bronze">
+                            <span class="pedestal-num">III</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lower Rankings List (Ranks 4-10) -->
+                <div class="lower-rankings-section hidden" id="lower-rankings-section">
+                    <h2 class="section-title-small">DİĞER DERECELER</h2>
+                    <div class="lower-rankings-list" id="lower-rankings-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Confetti container -->
+        <div class="confetti-container hidden" id="confetti-container"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="/js/podium.js"></script>
+</body>
+</html>

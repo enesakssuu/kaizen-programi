@@ -783,6 +783,14 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+app.get('/podium', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'podium.html'));
+});
+
+app.get('/scoreboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'scoreboard.html'));
+});
+
 
 
 // ==================== START SERVER ====================
