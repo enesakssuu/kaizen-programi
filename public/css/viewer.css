@@ -62,82 +62,20 @@
 
 /* ==================== HEADER ==================== */
 .viewer-header {
-    position: relative;
-    z-index: 5;
-    text-align: center;
-    padding: 1rem 1rem 0.5rem;
-}
-
-.header-logos {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin: 0 auto 0.75rem;
-    max-width: calc(100vw - 2rem);
-    width: fit-content;
-    background: rgba(15, 23, 42, 0.96);
-    padding: 0.5rem 1.2rem;
-    border-radius: 50px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.header-logo-left {
-    height: 28px;
-    width: auto;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-    flex-shrink: 0;
-}
-
-.header-logo-right {
-    height: 46px;
-    max-width: 120px;
-    width: auto;
-    object-fit: contain;
-    mix-blend-mode: screen;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.15));
-    flex-shrink: 0;
-}
-
-.header-divider {
-    width: 1px;
-    height: 18px;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.viewer-title {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-}
-
-.viewer-subtitle {
-    font-size: 0.75rem;
-    color: var(--accent);
-    margin-top: 0.35rem;
-    font-weight: 700;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
+    display: none !important;
 }
 
 /* ==================== MAIN STAGE ==================== */
 .viewer-stage {
     position: relative;
     z-index: 2;
-    padding: 0.5rem 2rem;
+    padding: 2rem;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 100%;
     transition: transform 0.15s ease-out;
 }
 
@@ -493,7 +431,7 @@
     position: relative;
     z-index: 2;
     padding: 0.25rem 2rem 1.5rem;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     width: 100%;
     flex: 1;
@@ -515,7 +453,7 @@
 .rankings-list {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.75rem;
     flex: 1;
     justify-content: center;
 }
@@ -523,14 +461,14 @@
 .ranking-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.45rem 1rem;
+    gap: 1.5rem;
+    padding: 0.8rem 1.5rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     transition: all var(--transition-base);
     animation: ranking-slide-in 0.4s cubic-bezier(0.25, 1, 0.5, 1) both;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
 }
 
 @keyframes ranking-slide-in {
@@ -550,12 +488,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    height: 32px;
+    min-width: 48px;
+    height: 48px;
     border-radius: var(--radius-sm);
     font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 1.4rem;
+    font-weight: 800;
     flex-shrink: 0;
 }
 
@@ -603,8 +541,8 @@
 
 .ranking-project-name {
     font-family: var(--font-sans);
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1.4rem;
+    font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -612,20 +550,20 @@
 }
 
 .ranking-project-team {
-    font-size: 0.75rem;
+    font-size: 1.05rem;
     color: var(--text-secondary);
 }
 
 .ranking-score {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
     flex-shrink: 0;
 }
 
 .ranking-score-bar {
-    width: 90px;
-    height: 4px;
+    width: 140px;
+    height: 8px;
     background: #e5e5ea;
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -655,10 +593,10 @@
 
 .ranking-score-value {
     font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1.4rem;
+    font-weight: 700;
     color: var(--text-primary);
-    min-width: 50px;
+    min-width: 80px;
     text-align: right;
 }
 
@@ -1172,13 +1110,13 @@
 .scoreboard-summary-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: 1.5rem;
     width: 100%;
 }
 
 .stat-box {
     text-align: center;
-    padding: 0.8rem 0.5rem;
+    padding: 1.25rem 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1195,17 +1133,17 @@
 }
 
 .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
 }
 
 .stat-value {
     font-family: var(--font-display);
-    font-size: 1.4rem;
+    font-size: 2.2rem;
     font-weight: 800;
     color: var(--primary);
     line-height: 1;
@@ -1223,24 +1161,24 @@
     box-shadow: var(--shadow-md);
     padding: 0;
     overflow: hidden;
-    max-height: 48vh;
+    max-height: 72vh;
     display: flex;
     flex-direction: column;
 }
 
 .scoreboard-list {
     overflow-y: auto;
-    padding: 0.8rem;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.75rem;
 }
 
 .scoreboard-row {
     display: grid;
-    grid-template-columns: 45px 1.5fr 1fr 110px 80px;
+    grid-template-columns: 60px 1.5fr 1fr 140px 100px;
     align-items: center;
-    padding: 0.55rem 1rem;
+    padding: 1rem 1.75rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -1256,7 +1194,7 @@
 
 .row-rank {
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: var(--text-secondary);
     text-align: center;
@@ -1264,11 +1202,11 @@
 
 .row-info {
     min-width: 0;
-    padding-right: 1rem;
+    padding-right: 1.5rem;
 }
 
 .row-project-name {
-    font-size: 0.9rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
@@ -1277,7 +1215,7 @@
 }
 
 .row-project-team {
-    font-size: 0.7rem;
+    font-size: 1.1rem;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
@@ -1285,12 +1223,12 @@
 }
 
 .row-bar-container {
-    padding-right: 1rem;
+    padding-right: 1.5rem;
 }
 
 .row-score-bar {
     width: 100%;
-    height: 5px;
+    height: 10px;
     background: #e5e5ea;
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -1343,8 +1281,8 @@
 .votes-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.15rem 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 1rem;
     font-weight: 700;
     border-radius: var(--radius-full);
     font-family: var(--font-display);
@@ -1370,7 +1308,7 @@
 
 .row-score {
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 1.8rem;
     font-weight: 800;
     color: var(--primary);
     text-align: right;
@@ -1398,11 +1336,11 @@
 
 .podium-grid {
     display: grid;
-    grid-template-columns: 1fr 1.1fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr 1.15fr 1fr;
+    gap: 2.5rem;
     align-items: end;
     width: 100%;
-    margin-top: 1rem;
+    margin-top: 2rem;
 }
 
 .podium-spot {
@@ -1420,12 +1358,12 @@
 .podium-card {
     width: 100%;
     text-align: center;
-    padding: 1.25rem 1rem;
+    padding: 2rem 1.5rem;
     border-radius: var(--radius-lg);
     background: var(--surface);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-md);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     position: relative;
     z-index: 2;
     transition: transform var(--transition-base), box-shadow var(--transition-base);
@@ -1438,27 +1376,27 @@
 
 .podium-rank-badge {
     position: absolute;
-    top: -18px;
+    top: -25px;
     left: 50%;
     transform: translateX(-50%);
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.6rem;
     box-shadow: var(--shadow-sm);
     color: white;
 }
 
 .podium-project-name {
-    font-size: 1.1rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.35rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1466,9 +1404,9 @@
 }
 
 .podium-project-team {
-    font-size: 0.8rem;
+    font-size: 1.1rem;
     color: var(--text-secondary);
-    margin-bottom: 0.8rem;
+    margin-bottom: 1.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1477,11 +1415,11 @@
 
 .podium-score-badge {
     display: inline-block;
-    padding: 0.25rem 0.85rem;
+    padding: 0.4rem 1.2rem;
     background: var(--bg-primary);
     border-radius: var(--radius-full);
     font-family: var(--font-display);
-    font-size: 1.05rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--primary);
     border: 1px solid var(--border);
@@ -1499,7 +1437,7 @@
 
 .pedestal-num {
     font-family: var(--font-display);
-    font-size: 2.2rem;
+    font-size: 3.8rem;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.4);
     pointer-events: none;
@@ -1507,7 +1445,7 @@
 }
 
 .pedestal-gold {
-    height: 150px;
+    height: 260px;
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     border-top: 3px solid #fbbf24;
     box-shadow: 0 10px 25px rgba(245, 158, 11, 0.15), inset 0 2px 4px rgba(255,255,255,0.4);
@@ -1518,14 +1456,14 @@
 }
 
 .pedestal-silver {
-    height: 110px;
+    height: 190px;
     background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
     border-top: 3px solid #cbd5e1;
     box-shadow: 0 8px 20px rgba(71, 85, 105, 0.12), inset 0 2px 4px rgba(255,255,255,0.4);
 }
 
 .pedestal-bronze {
-    height: 85px;
+    height: 140px;
     background: linear-gradient(135deg, #ea580c 0%, #7c2d12 100%);
     border-top: 3px solid #fdba74;
     box-shadow: 0 6px 15px rgba(124, 45, 18, 0.12), inset 0 2px 4px rgba(255,255,255,0.4);
@@ -1554,9 +1492,9 @@
 .lower-rankings-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 0.75rem;
+    gap: 1rem;
     width: 100%;
-    max-height: 22vh;
+    max-height: 30vh;
     overflow-y: auto;
     padding: 0.2rem;
 }
@@ -1564,8 +1502,8 @@
 .lower-rank-item {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.6rem 0.8rem;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -1577,13 +1515,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 28px;
-    height: 28px;
+    min-width: 40px;
+    height: 40px;
     background: var(--bg-primary);
     color: var(--text-secondary);
     border-radius: var(--radius-sm);
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 1.3rem;
     font-weight: 700;
 }
 
@@ -1593,7 +1531,7 @@
 }
 
 .lower-rank-name {
-    font-size: 0.85rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: var(--text-primary);
     white-space: nowrap;
@@ -1602,7 +1540,7 @@
 }
 
 .lower-rank-team {
-    font-size: 0.7rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
@@ -1611,7 +1549,7 @@
 
 .lower-rank-score {
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary);
     flex-shrink: 0;
