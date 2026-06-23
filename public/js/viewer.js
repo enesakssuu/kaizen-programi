@@ -863,12 +863,8 @@
             return;
         }
 
-        // Corporate theme colors: orange (#fc5000), blue (#0a338b), gold (#ffd700), white (#ffffff)
-        const orange = '#fc5000';
-        const blue = '#0a338b';
-        const gold = '#ffd700';
-        const white = '#ffffff';
-        const colors = [orange, blue, gold, '#ff8c00', white];
+        // All confetti colors set to metallic shades of gold
+        const colors = ['#ffd700', '#f59e0b', '#d97706', '#ca8a04', '#fef08a', '#eab308'];
 
         if (rank === 1) {
             // Massive continuous celebration for 1st place!
@@ -943,16 +939,13 @@
     }
  
     function playSound(url, type) {
-        if (!url) {
-            if (type === 'tick') playDefaultTickSound();
-            else if (type === 'reveal') playDefaultRevealSound();
-            return;
-        }
+        // Fallback to local files if no URL is set in DB settings
+        const playUrl = url || (type === 'tick' ? '/sounds/countdown.mp3' : '/sounds/reveal.mp3');
         try {
-            const audio = new Audio(url);
+            const audio = new Audio(playUrl);
             audio.volume = type === 'tick' ? 0.35 : 0.8;
             audio.play().catch(e => {
-                console.warn("Could not play custom sound, playing fallback:", e);
+                // If local file fails (e.g. 404 because file doesn't exist), play default synthesized sound
                 if (type === 'tick') playDefaultTickSound();
                 else if (type === 'reveal') playDefaultRevealSound();
             });

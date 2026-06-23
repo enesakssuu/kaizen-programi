@@ -990,9 +990,9 @@
                 body: JSON.stringify({
                     sounds: {
                         countdownEnabled,
-                        countdownUrl: "",
+                        countdownUrl: settings.sounds?.countdownUrl || "",
                         revealEnabled,
-                        revealUrl: ""
+                        revealUrl: settings.sounds?.revealUrl || ""
                     }
                 })
             });
