@@ -61,6 +61,46 @@
     const $countdownRankLabel = document.querySelector('.countdown-rank-label');
     const $countdownSubtext = document.querySelector('.countdown-subtext');
 
+    const $viewerHeaderTitle = document.getElementById('viewer-header-title');
+    const $viewerHeaderSubtitle = document.getElementById('viewer-header-subtitle');
+
+    // Scoreboard elements
+    const $scoreboardState = document.getElementById('scoreboard-state');
+    const $statTotalProjects = document.getElementById('stat-total-projects');
+    const $statTotalJurors = document.getElementById('stat-total-jurors');
+    const $statTotalVotes = document.getElementById('stat-total-votes');
+    const $statConsensusLabel = document.getElementById('stat-consensus-label');
+    const $scoreboardList = document.getElementById('scoreboard-list');
+
+    // Podium elements
+    const $podiumState = document.getElementById('podium-state');
+    const $activePodiumView = document.getElementById('active-podium-view');
+    const $lowerRankingsSection = document.getElementById('lower-rankings-section');
+    const $lowerRankingsList = document.getElementById('lower-rankings-list');
+    let goldAlreadyRevealed = false;
+
+    // Podium Spots
+    const podiumSpots = {
+        1: {
+            el: document.getElementById('spot-1'),
+            name: document.getElementById('name-1'),
+            team: document.getElementById('team-1'),
+            score: document.getElementById('score-1')
+        },
+        2: {
+            el: document.getElementById('spot-2'),
+            name: document.getElementById('name-2'),
+            team: document.getElementById('team-2'),
+            score: document.getElementById('score-2')
+        },
+        3: {
+            el: document.getElementById('spot-3'),
+            name: document.getElementById('name-3'),
+            team: document.getElementById('team-3'),
+            score: document.getElementById('score-3')
+        }
+    };
+
     const CIRCUMFERENCE = 2 * Math.PI * 120; // ~753.98
 
     // ==================== INIT ====================
@@ -153,6 +193,11 @@
                 serverTimeOffset = (data.serverTime + rtt / 2) - endTime;
             }
             handleStatusUpdate(data);
+
+            // Canlı Skor Tablosu modundaysak jüri oylaması verilerini çek
+            if (data.presentation?.mode === 'scoreboard') {
+                await pollScoreboardData();
+            }
         } catch (err) {
             console.error('Polling error:', err);
         }
@@ -220,6 +265,10 @@
                 }
             }
         }
+
+        if (presentationMode === 'podium') {
+            renderPodium(data);
+        }
         updateWaitingVisibility();
     }
 
@@ -281,6 +330,7 @@
             localTimerInterval = null;
         }
         timerState = null;
+        goldAlreadyRevealed = false;
 
         revealedProjects = [];
         $rankingsList.innerHTML = '';
@@ -290,6 +340,18 @@
         if ($welcomeState) $welcomeState.classList.add('hidden');
         if ($revealTwoContainer) $revealTwoContainer.classList.add('hidden');
         if ($rankingsRevealCard) $rankingsRevealCard.classList.remove('hidden');
+        if ($scoreboardState) $scoreboardState.classList.add('hidden');
+        if ($podiumState) $podiumState.classList.add('hidden');
+        
+        // Hide podium spots
+        [1, 2, 3].forEach(r => {
+            if (podiumSpots[r] && podiumSpots[r].el) {
+                podiumSpots[r].el.classList.add('hidden');
+            }
+        });
+        if ($lowerRankingsList) $lowerRankingsList.innerHTML = '';
+        if ($lowerRankingsSection) $lowerRankingsSection.classList.add('hidden');
+
         $confettiContainer.classList.add('hidden');
         $confettiContainer.innerHTML = '';
         isAnimating = false;
@@ -444,34 +506,238 @@
     }
 
     // ==================== UI HELPERS ====================
+    function updateHeader(title, subtitle) {
+        if ($viewerHeaderTitle) {
+            $viewerHeaderTitle.textContent = title;
+            if (title) {
+                $viewerHeaderTitle.classList.remove('hidden');
+            } else {
+                $viewerHeaderTitle.classList.add('hidden');
+            }
+        }
+        if ($viewerHeaderSubtitle) {
+            $viewerHeaderSubtitle.textContent = subtitle;
+            if (subtitle) {
+                $viewerHeaderSubtitle.classList.remove('hidden');
+            } else {
+                $viewerHeaderSubtitle.classList.add('hidden');
+            }
+        }
+    }
+
     function updateWaitingVisibility() {
-        if (isAnimating || revealedProjects.length > 0) {
+        if (isAnimating) {
             $waitingState.classList.add('hidden');
             $timerState.classList.add('hidden');
             if ($welcomeState) $welcomeState.classList.add('hidden');
-            $rankingsSection.classList.remove('hidden');
-            $viewerStage.classList.remove('timer-only');
+            if ($scoreboardState) $scoreboardState.classList.add('hidden');
+            if ($podiumState) $podiumState.classList.add('hidden');
+            $rankingsSection.classList.add('hidden');
+            updateHeader('', '');
             return;
         }
 
-        if (presentationMode === 'timer') {
+        // Hide all views first
+        $waitingState.classList.add('hidden');
+        $timerState.classList.add('hidden');
+        if ($welcomeState) $welcomeState.classList.add('hidden');
+        if ($scoreboardState) $scoreboardState.classList.add('hidden');
+        if ($podiumState) $podiumState.classList.add('hidden');
+        $rankingsSection.classList.add('hidden');
+        $viewerStage.classList.remove('timer-only');
+
+        if (presentationMode === 'scoreboard') {
+            if ($scoreboardState) $scoreboardState.classList.remove('hidden');
+            updateHeader('KAIZEN CANLI SKOR TABLOSU', 'Grup Değerlendirmeleri');
+        } else if (presentationMode === 'podium') {
+            if ($podiumState) $podiumState.classList.remove('hidden');
+            updateHeader('KAIZEN PUANLAMA PODYUMU', 'Final Sonuçları');
+        } else if (revealedProjects.length > 0) {
+            $rankingsSection.classList.remove('hidden');
+            updateHeader('', '');
+        } else if (presentationMode === 'timer') {
             $timerState.classList.remove('hidden');
-            $waitingState.classList.add('hidden');
-            if ($welcomeState) $welcomeState.classList.add('hidden');
-            $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
+            updateHeader('', '');
         } else if (presentationMode === 'welcome') {
             if ($welcomeState) $welcomeState.classList.remove('hidden');
-            $timerState.classList.add('hidden');
-            $waitingState.classList.add('hidden');
-            $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
+            updateHeader('', '');
         } else {
             $waitingState.classList.remove('hidden');
-            $timerState.classList.add('hidden');
-            if ($welcomeState) $welcomeState.classList.add('hidden');
-            $rankingsSection.classList.add('hidden');
             $viewerStage.classList.add('timer-only');
+            updateHeader('', '');
+        }
+    }
+
+    // ==================== SCOREBOARD & PODIUM RENDERERS ====================
+    async function pollScoreboardData() {
+        try {
+            const res = await fetch('/api/admin/all-scores');
+            const data = await res.json();
+            renderLiveScoreboard(data);
+        } catch (err) {
+            console.error('Scoreboard polling error:', err);
+        }
+    }
+
+    function renderLiveScoreboard(data) {
+        const projects = data.projects || [];
+        const jurors = data.jurors || [];
+        const scores = data.scores || {};
+        const rankingsList = data.rankings || [];
+
+        if ($statTotalProjects) $statTotalProjects.textContent = projects.length;
+        if ($statTotalJurors) $statTotalJurors.textContent = jurors.length;
+        
+        const totalVotes = Object.keys(scores).length;
+        if ($statTotalVotes) $statTotalVotes.textContent = totalVotes;
+
+        if ($statConsensusLabel) {
+            const maxPossibleVotes = projects.length * jurors.length;
+            if (projects.length === 0 || jurors.length === 0) {
+                $statConsensusLabel.textContent = 'Kurulum Yok';
+                $statConsensusLabel.className = 'stat-value text-accent';
+                $statConsensusLabel.style.color = '';
+            } else if (totalVotes >= maxPossibleVotes) {
+                $statConsensusLabel.textContent = 'Tamamlandı';
+                $statConsensusLabel.className = 'stat-value';
+                $statConsensusLabel.style.color = 'var(--success)';
+            } else {
+                $statConsensusLabel.textContent = 'Oylanıyor';
+                $statConsensusLabel.className = 'stat-value text-accent';
+                $statConsensusLabel.style.color = '';
+            }
+        }
+
+        if (!$scoreboardList) return;
+        $scoreboardList.innerHTML = '';
+        if (rankingsList.length === 0) {
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'text-center text-muted mt-md w-full';
+            emptyEl.textContent = 'Henüz değerlendirilecek proje bulunmamaktadır.';
+            $scoreboardList.appendChild(emptyEl);
+            return;
+        }
+
+        rankingsList.forEach((project, index) => {
+            const rank = index + 1;
+            const percent = (project.averageScore / (project.maxScore || 100)) * 100;
+            const formattedRank = String(rank).padStart(2, '0');
+
+            let badgeClass = 'badge-none';
+            let badgeText = 'Bekliyor';
+            if (project.jurorCount === project.totalJurors && project.totalJurors > 0) {
+                badgeClass = 'badge-complete';
+                badgeText = 'Tamamlandı';
+            } else if (project.jurorCount > 0) {
+                badgeClass = 'badge-voting';
+                badgeText = 'Oylanıyor';
+            }
+
+            const row = document.createElement('div');
+            row.className = 'scoreboard-row';
+            row.style.animationDelay = (index * 0.04) + 's';
+
+            row.innerHTML = `
+                <div class="row-rank">${formattedRank}</div>
+                <div class="row-info">
+                    <div class="row-project-name">${escapeHtml(project.projectName)}</div>
+                    <div class="row-project-team">${escapeHtml(project.projectTeam || '')}</div>
+                </div>
+                <div class="row-bar-container">
+                    <div class="row-score-bar">
+                        <div class="row-score-fill" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+                <div class="row-votes-status">
+                    <span class="votes-badge ${badgeClass}">
+                        ${badgeText} (${project.jurorCount}/${project.totalJurors})
+                    </span>
+                </div>
+                <div class="row-score">${project.averageScore.toFixed(1)}</div>
+            `;
+            $scoreboardList.appendChild(row);
+        });
+    }
+
+    function renderPodium(data) {
+        const listRankings = data.rankings || [];
+        const revealedRanks = revealedProjects.map(rp => rp.rank);
+
+        // Handle reset
+        if (revealedRanks.length === 0) {
+            goldAlreadyRevealed = false;
+            [1, 2, 3].forEach(r => {
+                if (podiumSpots[r] && podiumSpots[r].el) {
+                    podiumSpots[r].el.classList.add('hidden');
+                }
+            });
+            if ($lowerRankingsList) $lowerRankingsList.innerHTML = '';
+            if ($lowerRankingsSection) $lowerRankingsSection.classList.add('hidden');
+            return;
+        }
+
+        let showLower = false;
+
+        [1, 2, 3].forEach(rank => {
+            const projectIndex = rank - 1;
+            const project = listRankings[projectIndex];
+            const spot = podiumSpots[rank];
+
+            if (project && revealedRanks.includes(rank)) {
+                if (spot) {
+                    spot.name.textContent = project.projectName;
+                    spot.team.textContent = project.projectTeam || '';
+                    spot.score.textContent = project.averageScore.toFixed(1);
+                    if (spot.el.classList.contains('hidden')) {
+                        spot.el.classList.remove('hidden');
+                    }
+                }
+
+                if (rank === 1 && !goldAlreadyRevealed) {
+                    goldAlreadyRevealed = true;
+                    setTimeout(() => {
+                        launchConfetti(1);
+                    }, 800);
+                }
+            } else {
+                if (spot && spot.el) {
+                    spot.el.classList.add('hidden');
+                }
+            }
+        });
+
+        if ($lowerRankingsList) {
+            $lowerRankingsList.innerHTML = '';
+            const maxLowerRank = Math.min(10, listRankings.length);
+            
+            for (let r = 4; r <= maxLowerRank; r++) {
+                const projectIndex = r - 1;
+                const project = listRankings[projectIndex];
+
+                if (project && revealedRanks.includes(r)) {
+                    showLower = true;
+                    const el = document.createElement('div');
+                    el.className = 'lower-rank-item';
+                    el.style.animationDelay = ((r - 4) * 0.05) + 's';
+                    el.innerHTML = `
+                        <div class="lower-rank-badge">${r}</div>
+                        <div class="lower-rank-info">
+                            <div class="lower-rank-name">${escapeHtml(project.projectName)}</div>
+                            ${project.projectTeam ? `<div class="lower-rank-team">${escapeHtml(project.projectTeam)}</div>` : ''}
+                        </div>
+                        <div class="lower-rank-score">${project.averageScore.toFixed(1)}</div>
+                    `;
+                    $lowerRankingsList.appendChild(el);
+                }
+            }
+        }
+
+        if (showLower) {
+            if ($lowerRankingsSection) $lowerRankingsSection.classList.remove('hidden');
+        } else {
+            if ($lowerRankingsSection) $lowerRankingsSection.classList.add('hidden');
         }
     }
 

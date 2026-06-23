@@ -689,7 +689,7 @@ app.post('/api/presentation/reset', async (req, res) => {
 // ==================== PRESENTATION MODE & TIMER ENDPOINTS ====================
 app.post('/api/presentation/mode', async (req, res) => {
     const { mode } = req.body;
-    if (mode !== 'timer' && mode !== 'waiting' && mode !== 'welcome') {
+    if (mode !== 'timer' && mode !== 'waiting' && mode !== 'welcome' && mode !== 'scoreboard' && mode !== 'podium') {
         return res.status(400).json({ message: 'Geçersiz mod' });
     }
     const data = await readData();
@@ -783,13 +783,7 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-app.get('/podium', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'podium.html'));
-});
-
-app.get('/scoreboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'scoreboard.html'));
-});
+// Ayrı sayfa rotaları kaldırıldı (Skor ve Podyum ana sayfada dinamik durum olarak yönetilmektedir)
 
 
 

@@ -30,6 +30,8 @@
                 <div class="header-divider"></div>
                 <img src="/logo.png" alt="Kaizen Logo" class="header-logo-right">
             </div>
+            <h1 class="viewer-title hidden" id="viewer-header-title"></h1>
+            <p class="viewer-subtitle hidden" id="viewer-header-subtitle"></p>
         </header>
 
         <!-- Main Stage -->
@@ -92,6 +94,89 @@
                 </div>
                 <p class="waiting-text">Sonuçların açıklanması bekleniyor</p>
                 <p class="waiting-subtext">Jüri değerlendirmeleri tamamlandığında sıralamalar burada açıklanacaktır.</p>
+            </div>
+
+            <!-- Scoreboard State -->
+            <div class="scoreboard-state hidden" id="scoreboard-state">
+                <div class="scoreboard-summary-stats">
+                    <div class="stat-box card">
+                        <span class="stat-label">Toplam Proje</span>
+                        <span class="stat-value" id="stat-total-projects">0</span>
+                    </div>
+                    <div class="stat-box card">
+                        <span class="stat-label">Aktif Jüri Sayısı</span>
+                        <span class="stat-value" id="stat-total-jurors">0</span>
+                    </div>
+                    <div class="stat-box card">
+                        <span class="stat-label">Toplam Oy Gönderimi</span>
+                        <span class="stat-value" id="stat-total-votes">0</span>
+                    </div>
+                    <div class="stat-box card">
+                        <span class="stat-label">Skor Durumu</span>
+                        <span class="stat-value text-accent" id="stat-consensus-label">Hesaplanıyor</span>
+                    </div>
+                </div>
+
+                <div class="scoreboard-card card">
+                    <div class="scoreboard-list" id="scoreboard-list">
+                        <!-- Dynamically populated rows -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Podium State -->
+            <div class="podium-state hidden" id="podium-state">
+                <div class="active-podium-view" id="active-podium-view">
+                    <!-- Top 3 Podium Platform Grid -->
+                    <div class="podium-grid">
+                        <!-- 2. PLACE (SILVER) -->
+                        <div class="podium-spot podium-silver hidden" id="spot-2">
+                            <div class="podium-card card">
+                                <div class="podium-rank-badge rank-silver">2</div>
+                                <h3 class="podium-project-name" id="name-2">Proje Adı</h3>
+                                <p class="podium-project-team" id="team-2">Ekip Adı</p>
+                                <div class="podium-score-badge" id="score-2">0.0</div>
+                            </div>
+                            <div class="podium-pedestal pedestal-silver">
+                                <span class="pedestal-num">II</span>
+                            </div>
+                        </div>
+
+                        <!-- 1. PLACE (GOLD) -->
+                        <div class="podium-spot podium-gold hidden" id="spot-1">
+                            <div class="podium-card card">
+                                <div class="podium-rank-badge rank-gold">1</div>
+                                <h3 class="podium-project-name" id="name-1">Proje Adı</h3>
+                                <p class="podium-project-team" id="team-1">Ekip Adı</p>
+                                <div class="podium-score-badge" id="score-1">0.0</div>
+                            </div>
+                            <div class="podium-pedestal pedestal-gold">
+                                <span class="pedestal-num">I</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. PLACE (BRONZE) -->
+                        <div class="podium-spot podium-bronze hidden" id="spot-3">
+                            <div class="podium-card card">
+                                <div class="podium-rank-badge rank-bronze">3</div>
+                                <h3 class="podium-project-name" id="name-3">Proje Adı</h3>
+                                <p class="podium-project-team" id="team-3">Ekip Adı</p>
+                                <div class="podium-score-badge" id="score-3">0.0</div>
+                            </div>
+                            <div class="podium-pedestal pedestal-bronze">
+                                <span class="pedestal-num">III</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lower Rankings List (Ranks 4-10) -->
+                    <div class="lower-rankings-section hidden" id="lower-rankings-section">
+                        <h2 class="section-title-small">DİĞER DERECELER</h2>
+                        <div class="lower-rankings-list" id="lower-rankings-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 

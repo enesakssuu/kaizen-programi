@@ -57,6 +57,8 @@
     const $modeTimerBtn = document.getElementById('mode-timer-btn');
     const $modeWaitingBtn = document.getElementById('mode-waiting-btn');
     const $modeWelcomeBtn = document.getElementById('mode-welcome-btn');
+    const $modeScoreboardBtn = document.getElementById('mode-scoreboard-btn');
+    const $modePodiumBtn = document.getElementById('mode-podium-btn');
     const $timerTargetInput = document.getElementById('timer-target-input');
     const $timerSetBtn = document.getElementById('timer-set-btn');
     const $adminTimerDisplay = document.getElementById('admin-timer-display');
@@ -122,6 +124,12 @@
         $modeWaitingBtn.addEventListener('click', () => changePresentationMode('waiting'));
         if ($modeWelcomeBtn) {
             $modeWelcomeBtn.addEventListener('click', () => changePresentationMode('welcome'));
+        }
+        if ($modeScoreboardBtn) {
+            $modeScoreboardBtn.addEventListener('click', () => changePresentationMode('scoreboard'));
+        }
+        if ($modePodiumBtn) {
+            $modePodiumBtn.addEventListener('click', () => changePresentationMode('podium'));
         }
         $timerSetBtn.addEventListener('click', setTimerDuration);
         $timerStartBtn.addEventListener('click', () => controlTimer('start'));
@@ -544,8 +552,10 @@
         if ($modeWelcomeBtn) $modeWelcomeBtn.className = mode === 'welcome' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
         if ($modeTimerBtn) $modeTimerBtn.className = mode === 'timer' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
         if ($modeWaitingBtn) $modeWaitingBtn.className = mode === 'waiting' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
+        if ($modeScoreboardBtn) $modeScoreboardBtn.className = mode === 'scoreboard' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
+        if ($modePodiumBtn) $modePodiumBtn.className = mode === 'podium' ? 'btn w-full btn-primary' : 'btn w-full btn-ghost';
     }
-
+ 
     async function changePresentationMode(mode) {
         try {
             const res = await fetch('/api/presentation/mode', {
@@ -560,7 +570,8 @@
                 let modeText = 'Karşılama';
                 if (mode === 'timer') modeText = 'Sayaç';
                 else if (mode === 'waiting') modeText = 'Bekleme';
-                else if (mode === 'method') modeText = 'Metot Ödülü';
+                else if (mode === 'scoreboard') modeText = 'Canlı Skor';
+                else if (mode === 'podium') modeText = 'Podyum';
                 showToast(`Ekran modu güncellendi: ${modeText}`, 'success');
             }
         } catch (err) {
