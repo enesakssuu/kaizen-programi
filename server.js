@@ -37,7 +37,7 @@ const uploadAudio = multer({
 const app = express();
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
-const DATA_DIR = isProduction ? path.join(os.tmpdir(), 'kaizen-data') : path.join(__dirname, 'data');
+const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 // Ensure data directory exists

@@ -8,3 +8,4 @@ browser/
 data/data.json
 .system_generated/
 .gemini/
+.vercel
